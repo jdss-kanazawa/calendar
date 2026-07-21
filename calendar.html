@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>青年部金沢地区の予定</title>
+<title>青年部金沢地区の日程表</title>
 <style>
   :root{
     --text:#2C2C2B; --text2:#7D7A75; --canvas:#FFFFFF; --soft:#F9F8F7;
@@ -60,6 +60,14 @@
   .ev.green{background:var(--green-soft); color:#1f5c3d; border-left-color:var(--green);}
   .ev.red{background:var(--red-soft); color:#8f2f27; border-left-color:var(--red);}
   .ev.gray{background:var(--soft2); color:#4a4844; border-left-color:#B9B6B1;}
+  .ev.lecture{border-left-width:6px; padding:8px 10px; box-shadow:inset 0 0 0 2px var(--red);}
+  .ev.lecture .et{font-size:12px;}
+  .ev.lecture .en{font-size:15px; font-weight:800; line-height:1.25;}
+  .ev.lecture .ep{font-size:12px;}
+  .li.lecture{background:var(--red-soft);}
+  .li.lecture .bar{width:6px;}
+  .li.lecture .nm{font-size:16px; font-weight:800;}
+  .li.lecture .time{font-weight:700; color:#8f2f27;}
   .ev .et{display:block; font-size:10.5px; font-weight:600; opacity:.8; font-variant-numeric:tabular-nums;}
   .ev .en{display:block; font-size:12px; font-weight:700; margin:1px 0; word-break:break-word; white-space:normal;}
   .ev .ep{display:block; font-size:10.5px; opacity:.72; word-break:break-word; white-space:normal;}
@@ -113,7 +121,7 @@
   .empty{color:var(--text2); text-align:center; padding:40px 0; font-size:14px;}
   footer{margin-top:18px; text-align:center; color:var(--text2); font-size:12px;}
 
-  @media (max-width:720px){
+  @media (orientation:portrait){
     .calview{display:none;}
     .listview{display:block;}
     h1{font-size:19px;}
@@ -139,14 +147,12 @@
 
   <div class="calview">
     <div class="cal">
-      <div class="dow"><div class="sun">日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div class="sat">土</div></div>
+      <div class="dow"><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div class="sat">土</div><div class="sun">日</div></div>
       <div class="grid" id="grid"></div>
     </div>
   </div>
 
   <div class="listview" id="listview"></div>
-
-  <footer>青年部金沢地区の日程表より自動生成</footer>
 </div>
 
 <div class="overlay" id="overlay">
@@ -178,7 +184,7 @@ const EVENTS = [
   {n:"金沢花びら行進デー", start:"2026-07-04", allDay:true, cat:"共通", target:"学徒全員"},
   {n:"心を整えるブッダの教え〜悪循環から抜け出し、自分軸で生きるには", start:"2026-07-04T05:00:00Z", end:"2026-07-04T06:30:00Z", cat:"自支部／青年", target:"縁正含む", place:"メープルハウス本店", placeDetail:"2階", desc:"悩みを何でも打ち明けられる居場所に出会える(*^^*)学びと交流の勉強会です"},
   {n:"人に恵まれる人になる〜今日からできる”7つの習慣”", start:"2026-07-04T10:00:00Z", end:"2026-07-04T11:00:00Z", cat:"自支部／青年", target:"縁正含む", place:"ミスタードーナツ イオンモールかほくショップ", desc:"悩みを何でも打ち明けられる居場所に出会える(*^^*)学びと交流の勉強会です"},
-  {n:"二千畳ご講演", start:"2026-07-05T00:30:00Z", end:"2026-07-05T07:00:00Z", cat:"ご講演", target:"学徒全員", place:"親鸞会館", desc:"『なぜ生きる』１００万部突破・ご発刊２５周年ご講演"},
+  {n:"二千畳ご講演", start:"2026-07-05T00:30:00Z", end:"2026-07-05T07:00:00Z", cat:"ご講演", target:"学徒全員", place:"親鸞会館", desc:"『なぜ生きる』１００万部突破・ご発刊２５周��ご講演"},
   {n:"オンライン仏法讃嘆", start:"2026-07-05T11:00:00Z", end:"2026-07-05T11:50:00Z", cat:"共通", target:"学徒全員", place:"Zoom", staff:"松本光志先生", live:true},
   {n:"講演会準備★", start:"2026-07-10T09:00:00Z", end:"2026-07-10T12:00:00Z", cat:"共通", target:"学徒全員", place:"野々市市交遊舎", staff:"石川県支部長"},
   {n:"【オンラインサロン】自分を見失っていると感じるあなたへ〜ブッダに学��、”本当の自分”とは", start:"2026-07-10T12:00:00Z", end:"2026-07-10T12:45:00Z", cat:"自支部／青年", target:"縁正含む", place:"オンライン", desc:"日々の忙しさの中で、ふと「自分を見失っている」と感じることはありませんか?"},
@@ -210,7 +216,7 @@ const EVENTS = [
   {n:"金沢・ゆる哲カフェ交流会 〜変わりたいのに変われない、1歩を踏み出すポイントとは", start:"2026-07-26T05:00:00Z", end:"2026-07-26T06:00:00Z", cat:"自支部／青年", target:"縁正含む", place:"菓ふぇMURAKAMIクロスゲート金沢店", placeDetail:"金沢駅前", desc:"お茶をしながらゆっくりお話ししませんか? 哲学的なテーマからカジュアルに交流するカフェ会です"},
   {n:"埼玉春日部・栃木宇都宮会館落慶式", start:"2026-07-29T00:30:00Z", end:"2026-07-29T03:15:00Z", cat:"共通", target:"学徒全員", place:"（配信）"},
   {n:"自分を変えたいあなたへ〜人生を好転させる”6つの習慣”", start:"2026-07-29T10:00:00Z", end:"2026-07-29T11:00:00Z", cat:"自支部／青年", target:"縁正含む", place:"ミスタードーナツ イオンモールかほくショップ", desc:"悩みを何でも打ち明けられる居場所に出会える(*^^*)学びと交流の勉強会です"},
-  {n:"【オンラインサロン】やさしい哲学〜頑張ってきたあなたへ ブッダに学ぶ『運のいい人』の種まきとは?", start:"2026-07-29T12:00:00Z", end:"2026-07-29T12:45:00Z", cat:"自支部／青年", target:"縁正含む", place:"オンライン", desc:"ブッダは私たちの日々の思いや行動が、未来の人生を少しずつ形づくっていく。そんな「人生の法則」を教えられています。"},
+  {n:"【オンラインサロン】やさしい哲学〜頑張ってきたあなたへ ブッダに学ぶ『運のいい人』の種まきとは?", start:"2026-07-29T12:00:00Z", end:"2026-07-29T12:45:00Z", cat:"自支部／青年", target:"縁正含む", place:"オンライン", desc:"ブッダは私たちの日々の思いや行動が、���来の人生を少しずつ形づくっていく。そんな「人生の法則」を教えられています。"},
   {n:"親鸞学徒セミナー★", start:"2026-07-31T10:30:00Z", end:"2026-07-31T12:30:00Z", cat:"共通", target:"学徒全員", place:"金沢会館", staff:"石川県支部長"},
   {n:"紫雲閣 遷仏会", start:"2026-08-01T04:30:00Z", end:"2026-08-01T06:30:00Z", cat:"共通", target:"学徒全員", place:"紫雲閣"},
   {n:"親鸞学徒追悼法要", start:"2026-08-02T00:30:00Z", end:"2026-08-02T07:00:00Z", cat:"ご講演", target:"学徒全員", place:"親鸞会館", desc:"『なぜ生きる』１００万部突破・ご発刊２５周年ご講演"},
@@ -281,7 +287,7 @@ function renderCalendar(){
   const {y,m} = MONTHS[curMonth];
   const grid = document.getElementById("grid"); grid.innerHTML="";
   const first = new Date(Date.UTC(y,m-1,1));
-  const startDow = first.getUTCDay();
+  const startDow = (first.getUTCDay()+6)%7;
   const daysInMonth = new Date(Date.UTC(y,m,0)).getUTCDate();
   for(let i=0;i<startDow;i++){ const c=document.createElement("div"); c.className="cell pad"; grid.appendChild(c);}  
   for(let d=1; d<=daysInMonth; d++){
@@ -292,11 +298,11 @@ function renderCalendar(){
     if(key===todayKey)cell.classList.add("today");
     const dn=document.createElement("div"); dn.className="dnum"; dn.textContent=d; cell.appendChild(dn);
     eventsOn(key).forEach(e=>{
-      const b=document.createElement("button"); b.className="ev "+catCls(e);
+      const b=document.createElement("button"); b.className="ev "+catCls(e)+(e.cat==="ご講演"?" lecture":"");
       let h="";
       h+="<span class='et'>"+(e.allDay?"終日":esc(e.timeText))+"</span>";
       h+="<span class='en'>"+esc(e.n)+"</span>";
-      if(e.place){ h+="<span class='ep'>🏫 "+esc(e.place)+"</span>"; }
+      { const pd=placeDisp(e); if(pd){ h+="<span class='ep'>"+placeIcon(e)+" "+esc(pd)+"</span>"; } }
       h+=tagHtml(e);
       b.innerHTML=h;
       b.onclick=()=>openModal(e); cell.appendChild(b);
@@ -321,8 +327,9 @@ function renderList(){
     h.innerHTML="<span>"+m+"/"+d+"</span><span class='wd'>("+WD[dow]+")</span>";
     g.appendChild(h);
     evs.forEach(e=>{
-      const li=document.createElement("div"); li.className="li"; li.onclick=()=>openModal(e);
-      li.innerHTML="<div class='bar "+catCls(e)+"'></div><div class='time'>"+esc(e.timeText)+"</div><div style='flex:1'><div class='nm'>"+esc(e.n)+"</div>"+(e.place?"<div class='meta'>🏫 "+esc(e.place)+"</div>":"")+tagHtml(e)+"</div>";
+      const li=document.createElement("div"); li.className="li"+(e.cat==="ご講演"?" lecture":""); li.onclick=()=>openModal(e);
+      const pd=placeDisp(e); const pm=pd?"<div class='meta'>"+placeIcon(e)+" "+esc(pd)+"</div>":"";
+      li.innerHTML="<div class='bar "+catCls(e)+"'></div><div class='time'>"+esc(e.timeText)+"</div><div style='flex:1'><div class='nm'>"+esc(e.n)+"</div>"+pm+tagHtml(e)+"</div>";
       g.appendChild(li);
     });
     lv.appendChild(g);
@@ -334,9 +341,9 @@ function openModal(e){
   const cm=CATMAP[e.cat]||{cls:"gray",label:e.cat};
   let rows="";
   rows+="<div class='row'><div class='k'>日時</div><div class='v'>"+esc(monthDayText(e))+"　"+esc(e.timeText)+"</div></div>";
-  if(e.place){ rows+="<div class='row'><div class='k'>場所</div><div class='v'>🏫 "+esc(e.place)+(e.placeDetail?"（"+esc(e.placeDetail)+"）":"")+"</div></div>"; }
+  { const pd=placeDisp(e); if(pd){ rows+="<div class='row'><div class='k'>場所</div><div class='v'>"+placeIcon(e)+" "+esc(pd)+(e.placeDetail?"（"+esc(e.placeDetail)+"）":"")+"</div></div>"; } }
   if(e.staff){ rows+="<div class='row'><div class='k'>担当</div><div class='v'>"+esc(e.staff)+"</div></div>"; }
-  rows+="<div class='row'><div class='k'>対象</div><div class='v'><span class='tag "+((TARGETMAP[e.target]||{cls:'gray'}).cls)+"'>"+esc(e.target)+"</span>"+(e.live?"<span class='tag live'>📡 配信あり</span>":"")+"</div></div>";
+  rows+="<div class='row'><div class='k'>対象</div><div class='v'><span class='tag "+((TARGETMAP[e.target]||{cls:'gray'}).cls)+"'>"+esc(e.target)+"</span></div></div>";
   if(e.url){ rows+="<div class='row'><div class='k'>URL</div><div class='v'><a href='"+e.url+"' target='_blank' rel='noopener'>"+esc(e.url)+"</a></div></div>"; }
   if(e.desc){ rows+="<div class='row'><div class='k'>説明</div><div class='v'>"+esc(e.desc)+"</div></div>"; }
   const mo=document.getElementById("modal");
@@ -347,7 +354,10 @@ function closeModal(){ document.getElementById("overlay").classList.remove("on")
 function monthDayText(e){ const p=e.key.split("-"); const dt=new Date(Date.UTC(+p[0],+p[1]-1,+p[2])); return (+p[1])+"月"+(+p[2])+"日("+WD[dt.getUTCDay()]+")"; }
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 function catCls(e){ return (CATMAP[e.cat]||{cls:"gray"}).cls; }
-function tagHtml(e){ let s="<span class='tags'>"; const t=TARGETMAP[e.target]||{cls:"gray"}; s+="<span class='tag "+t.cls+"'>"+esc(e.target)+"</span>"; if(e.live){ s+="<span class='tag live'>📡 配信</span>"; } s+="</span>"; return s; }
+function tagHtml(e){ const t=TARGETMAP[e.target]||{cls:"gray"}; return "<span class='tags'><span class='tag "+t.cls+"'>"+esc(e.target)+"</span></span>"; }
+function hasStream(p){ return /オンライン|zoom|配信|ライブ|live|youtube/i.test(p||""); }
+function placeIcon(e){ return (e.place && !hasStream(e.place)) ? "🏫" : "📡"; }
+function placeDisp(e){ if(!e.place) return e.live?"配信":""; return (e.live && !hasStream(e.place)) ? e.place+"（配信）" : e.place; }
 
 function buildLegend(containerId, order, map, disabledSet, getVal, chipClass){
   const present = order.filter(name=>EVENTS.some(e=>getVal(e)===name));
