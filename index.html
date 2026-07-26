@@ -114,6 +114,10 @@
   .li .time{font-size:12px; color:var(--text2); flex:none; width:78px; font-variant-numeric:tabular-nums;}
   .li .nm{font-size:13.5px; font-weight:600;}
   .li .meta{font-size:12px; color:var(--text2); margin-top:2px;}
+  .spanwrap{position:relative; padding-left:30px;}
+  .vbar{position:absolute; left:0; top:0; bottom:10px; width:22px; border-radius:8px; background:#B9B6B1; color:#FFFFFF; display:flex; align-items:flex-start; justify-content:center; padding:10px 0; cursor:pointer; overflow:hidden;}
+  .vbar span{writing-mode:vertical-rl; font-size:11px; font-weight:700; letter-spacing:.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-height:100%;}
+  .vbar.blue{background:var(--blue);} .vbar.red{background:var(--red);} .vbar.green{background:var(--green);}
 
   /* modal */
   .overlay{position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; align-items:center; justify-content:center; padding:16px; z-index:50;}
@@ -139,7 +143,6 @@
   @media (orientation:portrait){
     .calview{display:none;}
     .listview{display:block;}
-    .spans{display:flex;}
     h1{font-size:19px;}
     .months button{flex:1; padding:8px 6px;}
     .months{width:100%;}
@@ -173,7 +176,7 @@
   <div class="listview" id="listview"></div>
 
   <div class="addnote">📗 青年・一般向け勉強会の詳細を知りたい方は、こちらを参照してください。<br><a href="https://www.kokuchpro.com/group/kanazawabuddhism/" target="_blank" rel="noopener">ベル・クルール〜Belle Couleur（こくちーず）</a></div>
-  <div class="updated">最終更新: 2026/7/26 23:35</div>
+  <div class="updated">最終更新: 2026/7/27 7:30</div>
 </div>
 
 <div class="overlay" id="overlay">
@@ -208,7 +211,7 @@ const EVENTS = [
   {n:"オンライン仏法讃嘆", start:"2026-07-05T11:00:00Z", end:"2026-07-05T11:50:00Z", cat:"共通", target:"学徒全員", place:"Zoom", staff:"松本光志先生", live:true},
   {n:"講演会準備★", start:"2026-07-10T09:00:00Z", end:"2026-07-10T12:00:00Z", cat:"共通", target:"学徒全員", place:"野々市市交遊舎", staff:"石川県支部長"},
   {n:"【オンラインサロン】自分を見失っていると感じるあなたへ〜ブッダに学ぶ、”本当の自分”とは", start:"2026-07-10T12:00:00Z", end:"2026-07-10T12:45:00Z", cat:"自支部／青年", target:"縁正含む", place:"オンライン", desc:"日々の忙しさの中で、ふと「自分を見失っている」と感じることはありませんか?"},
-  {n:"映画「親鸞 人生の目的」上映会◎", start:"2026-07-11T01:00:00Z", end:"2026-07-11T03:00:00Z", cat:"共通", target:"縁正含む", place:"野々市市交遊舎", staff:"石川県支部長"},
+  {n:"映画「親鸞 人生の目的」上映会◎", start:"2026-07-11T01:00:00Z", end:"2026-07-11T03:00:00Z", cat:"共通", target:"縁正含む", place:"野々市市交遊舎", staff:"石川県支部��"},
   {n:"やさしい哲学カフェ in 金沢 〜日常のちいさな問いから、人生を語る〜", start:"2026-07-11T01:30:00Z", end:"2026-07-11T03:00:00Z", cat:"自支部／青年", target:"縁正含む", place:"メープルハウス本店", desc:"楽しく心地よく語り合いながら、人生の深いテーマを少しだけ覗いてみませんか?"},
   {n:"歎異抄講演会◎", start:"2026-07-11T04:30:00Z", end:"2026-07-11T06:10:00Z", cat:"共通", target:"縁正含む", place:"野々市市交遊舎", staff:"石川県支部長"},
   {n:"ビデオ教学座談会★", start:"2026-07-13T04:30:00Z", end:"2026-07-13T06:45:00Z", cat:"共通", target:"学徒全員", place:"金沢会館", staff:"榎並麗子さん", desc:"高森先生の座談会を聞かせていただくご縁です"},
@@ -216,7 +219,7 @@ const EVENTS = [
   {n:"青年地区会合★", start:"2026-07-18T01:00:00Z", end:"2026-07-18T03:00:00Z", cat:"自支部／青年", target:"学徒全員", place:"金沢会館", staff:"新谷泰規先生", live:true, desc:"朝10時お勤め"},
   {n:"勉強会★", start:"2026-07-18T05:00:00Z", end:"2026-07-18T06:30:00Z", cat:"共通", target:"学徒全員", place:"金沢会館", staff:"渡部隆志先生", live:true},
   {n:"心がふっと軽くなる仏教講座 〜負の流れをほどくブッダの知恵〜", start:"2026-07-18T05:00:00Z", end:"2026-07-18T06:30:00Z", cat:"自支部／青年", target:"縁正含む", place:"金沢Rise", desc:"予備知識ゼロでも大丈夫!仏教の基礎からやさしく学びます"},
-  {n:"金沢会館大掃除★", start:"2026-07-18T06:45:00Z", end:"2026-07-18T08:15:00Z", cat:"共通", target:"学徒全員", place:"金沢会���������", staff:"宿野栄一さん"},
+  {n:"金沢会館大掃除★", start:"2026-07-18T06:45:00Z", end:"2026-07-18T08:15:00Z", cat:"共通", target:"学徒全員", place:"金沢会館", staff:"宿野栄一さん"},
   {n:"輝きセミナー（全国ネット顕正セミナー）", start:"2026-07-18T10:00:00Z", end:"2026-07-18T11:00:00Z", cat:"共通", target:"学徒全員", place:"Zoom", live:true},
   {n:"二千畳Ｑ＆Ａ", start:"2026-07-19T00:30:00Z", end:"2026-07-19T07:00:00Z", cat:"ご講演", target:"学徒全員", place:"親鸞会館"},
   {n:"オンライン仏法讃嘆", start:"2026-07-19T11:00:00Z", end:"2026-07-19T11:50:00Z", cat:"共通", target:"学徒全員", place:"Zoom", staff:"松本光志先生", live:true},
@@ -424,12 +427,12 @@ function renderList(){
   const {y,m}=MONTHS[curMonth];
   const lv=document.getElementById("listview"); lv.innerHTML="";
   const daysInMonth=new Date(Date.UTC(y,m,0)).getUTCDate();
-  let any=false;
+  let any=false; const groups=[];
   for(let d=1; d<=daysInMonth; d++){
     const key=keyFor(y,m,d); const evs=eventsOn(key);
     if(!evs.length)continue; any=true;
     const dow=new Date(Date.UTC(y,m-1,d)).getUTCDay();
-    const g=document.createElement("div"); g.className="day-group";
+    const g=document.createElement("div"); g.className="day-group"; groups.push({key:key, el:g});
     const h=document.createElement("div"); h.className="day-head";
     h.innerHTML="<span>"+m+"/"+d+"</span><span class='wd'>("+WD[dow]+")</span>";
     g.appendChild(h);
@@ -441,6 +444,18 @@ function renderList(){
     });
     lv.appendChild(g);
   }
+  SPANS.filter(s=>evVisible(s)).forEach(s=>{
+    const inRange = groups.filter(g=>g.key>=s.sKey && g.key<=s.eKey);
+    if(!inRange.length) return;
+    const wrap=document.createElement("div"); wrap.className="spanwrap";
+    lv.insertBefore(wrap, inRange[0].el);
+    const live = (todayKey>=s.sKey && todayKey<=s.eKey);
+    const vb=document.createElement("div"); vb.className="vbar "+catCls(s);
+    vb.innerHTML="<span>"+(live?"開催中":"開催予定")+" "+esc(s.n)+"（"+mdShort(s.sKey)+"〜"+mdShort(s.eKey)+"）</span>";
+    vb.onclick=()=>openModal(s.ev);
+    wrap.appendChild(vb);
+    inRange.forEach(g=>wrap.appendChild(g.el));
+  });
   if(!any){ lv.innerHTML="<div class='empty'>表示できる行事がありません</div>"; }
 }
 
