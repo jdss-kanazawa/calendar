@@ -4,9 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>青年部金沢地区の日程表</title>
-<link rel="icon" href="favicon.ico">
-<link rel="icon" type="image/png" href="favicon.png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
   :root{
     --text:#2C2C2B; --text2:#7D7A75; --canvas:#FFFFFF; --soft:#F9F8F7;
@@ -227,7 +224,7 @@ const EVENTS = [
   {n:"紫雲閣 遷仏会", start:"2026-08-01T04:30:00Z", end:"2026-08-01T06:30:00Z", cat:"共通", target:"学徒全員", place:"紫雲閣"},
   {n:"親鸞学徒追悼法要", start:"2026-08-02T00:30:00Z", end:"2026-08-02T07:00:00Z", cat:"ご講演", target:"学徒全員", place:"親鸞会館", desc:"『なぜ生きる』１００万部突破・ご発刊２５周年ご講演"},
   {n:"オンライン仏法讃嘆", start:"2026-08-02T11:00:00Z", end:"2026-08-02T11:50:00Z", cat:"共通", target:"学徒全員", place:"Zoom", staff:"松本光志先生", live:true},
-  {n:"親鸞学徒セミナー◎", start:"2026-08-06T05:00:00Z", end:"2026-08-06T07:00:00Z", cat:"共通", target:"縁正含む", place:"福井会館", staff:"福井県支部長", desc:"各会館で聞かせていただけます"},
+  {n:"親鸞学徒セミナー◎", start:"2026-08-06T05:00:00Z", end:"2026-08-06T07:00:00Z", cat:"共通", target:"学徒全員", place:"福井会館", staff:"福井県支部長", desc:"各会館で聞かせていただけます"},
   {n:"【オンラインサロン】「変われない」私が変わる、たった一つの方法とは〜AIに聞いても分からない問に対するブッダの答え", start:"2026-08-06T12:00:00Z", end:"2026-08-06T12:45:00Z", cat:"自支部／青年", target:"縁正含む", place:"オンライン", staff:"高松良行先生", live:true, desc:"「頭ではわかっているけれど、行動に移せない」「結局、明日も同じ日常を繰り返している」そんなあなたへ"},
   {n:"【かほく】カジュアルに語る〜哲学トーク交流会inカフェ", start:"2026-08-07T10:00:00Z", end:"2026-08-07T11:00:00Z", cat:"自支部／青年", target:"縁正含む", place:"ミスタードーナツ イオンモールかほくショップ", desc:"一杯のコーヒーと、こころを整える哲学対話。ちょっと贅沢な大人の交流会です"},
   {n:"教学顕正会合★", start:"2026-08-07T10:30:00Z", end:"2026-08-07T12:30:00Z", cat:"自支部／青年", target:"学徒全員", place:"金沢会館", staff:"落合孝臣先生", live:true},
@@ -283,8 +280,8 @@ EVENTS.forEach(e=>{
   } else {
     const s = jstParts(e.start);
     e.key = s.year+"-"+s.month+"-"+s.day;
-    let t = s.hour+":"+s.minute;
-    if(e.end){ const en = jstParts(e.end); t += "〜"+en.hour+":"+en.minute; }
+    let t = (+s.hour)+":"+s.minute;
+    if(e.end){ const en = jstParts(e.end); t += "〜"+(+en.hour)+":"+en.minute; }
     e.timeText = t;
     e.sortH = parseInt(s.hour)*60+parseInt(s.minute);
   }
