@@ -41,6 +41,18 @@
   .flabel{font-size:12px; font-weight:700; color:var(--text2); flex:none; padding-top:5px; width:34px;}
   .addnote{margin-top:14px; padding:12px 14px; border:1px solid var(--blue); border-radius:10px; background:var(--blue-soft); font-size:13px; line-height:1.7; color:var(--text);}
   .addnote a{color:var(--blue); font-weight:700; text-decoration:underline;}
+  .spanline{display:block; width:calc(100% + 12px); margin:0 -6px 3px; padding:2px 6px; border:none; font:inherit; font-size:10.5px; font-weight:700; line-height:1.5; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#FFFFFF; background:#B9B6B1; cursor:pointer;}
+  .spanline.blue{background:var(--blue);} .spanline.red{background:var(--red);} .spanline.green{background:var(--green);}
+  .spanline.is-start{width:calc(100% + 6px); margin-left:0; border-radius:5px 0 0 5px;}
+  .spanline.is-end{width:calc(100% + 6px); margin-right:0; border-radius:0 5px 5px 0;}
+  .spanline.is-start.is-end{width:100%; border-radius:5px;}
+  .spans{display:none; flex-direction:column; gap:6px; margin-bottom:10px;}
+  .spanbar{display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:8px 12px; border-radius:9px; border:1px solid var(--border); background:var(--soft); font-size:13px; font-weight:700; color:var(--text);}
+  .spanbar.blue{background:var(--blue-soft); border-color:var(--blue); color:#1b5c9e;}
+  .spanbar.red{background:var(--red-soft); border-color:var(--red); color:#8f2f27;}
+  .spanbar.green{background:var(--green-soft); border-color:var(--green); color:#2c6b4a;}
+  .spanbar .sb-badge{font-size:11px; padding:2px 8px; border-radius:999px; background:#FFFFFF; border:1px solid currentColor;}
+  .spanbar .sb-date{font-size:12px; font-weight:600; opacity:.85;}
   .fnote{font-size:12px; color:var(--text2); background:var(--soft); border-radius:7px; padding:6px 10px; margin-bottom:2px;}
   .dot{width:11px; height:11px; border-radius:3px; flex:none;}
   .dot.blue{background:var(--blue);} .dot.green{background:var(--green);} .dot.red{background:var(--red);}
@@ -126,6 +138,7 @@
   @media (orientation:portrait){
     .calview{display:none;}
     .listview{display:block;}
+    .spans{display:flex;}
     h1{font-size:19px;}
     .months button{flex:1; padding:8px 6px;}
     .months{width:100%;}
@@ -146,6 +159,8 @@
     <div class="fgroup"><span class="flabel">分類</span><div class="legend" id="legendCat"></div></div>
     <div class="fgroup"><span class="flabel">対象</span><div class="legend" id="legendTarget"></div></div>
   </div>
+
+  <div class="spans" id="spans"></div>
 
   <div class="calview">
     <div class="cal">
@@ -199,7 +214,7 @@ const EVENTS = [
   {n:"青年地区会合★", start:"2026-07-18T01:00:00Z", end:"2026-07-18T03:00:00Z", cat:"自支部／青年", target:"学徒全員", place:"金沢会館", staff:"新谷泰規先生", live:true, desc:"朝10時お勤め"},
   {n:"勉強会★", start:"2026-07-18T05:00:00Z", end:"2026-07-18T06:30:00Z", cat:"共通", target:"学徒全員", place:"金沢会館", staff:"渡部隆志先生", live:true},
   {n:"心がふっと軽くなる仏教講座 〜負の流れをほどくブッダの知恵〜", start:"2026-07-18T05:00:00Z", end:"2026-07-18T06:30:00Z", cat:"自支部／青年", target:"縁正含む", place:"金沢Rise", desc:"予備知識ゼロでも大丈夫!仏教の基礎からやさしく学びます"},
-  {n:"金沢会館大掃除★", start:"2026-07-18T06:45:00Z", end:"2026-07-18T08:15:00Z", cat:"共通", target:"学徒全員", place:"金沢会�����", staff:"宿野栄一さん"},
+  {n:"金沢会館大掃除★", start:"2026-07-18T06:45:00Z", end:"2026-07-18T08:15:00Z", cat:"共通", target:"学徒全員", place:"金沢会���������", staff:"宿野栄一さん"},
   {n:"輝きセミナー（全国ネット顕正セミナー）", start:"2026-07-18T10:00:00Z", end:"2026-07-18T11:00:00Z", cat:"共通", target:"学徒全員", place:"Zoom", live:true},
   {n:"二千畳Ｑ＆Ａ", start:"2026-07-19T00:30:00Z", end:"2026-07-19T07:00:00Z", cat:"ご講演", target:"学徒全員", place:"親鸞会館"},
   {n:"オンライン仏法讃嘆", start:"2026-07-19T11:00:00Z", end:"2026-07-19T11:50:00Z", cat:"共通", target:"学徒全員", place:"Zoom", staff:"松本光志先生", live:true},
@@ -234,6 +249,7 @@ const EVENTS = [
   {n:"青年学徒会合★", start:"2026-08-11T01:00:00Z", end:"2026-08-11T03:00:00Z", cat:"自支部／青年", target:"学徒全員", place:"金沢会館", staff:"新谷泰規先生", live:true, desc:"朝10時お勤め"},
   {n:"本音を飲み込んでしまうあなたへ 〜優しすぎる心を守るブッダの知恵〜", start:"2026-08-11T05:00:00Z", end:"2026-08-11T06:30:00Z", cat:"自支部／青年", target:"縁正含む", place:"メープルハウス本店", staff:"新谷泰規先生", desc:"予備知識ゼロでも大丈夫!仏教の基礎からやさしく学びます"},
   {n:"親鸞学徒セミナー★", start:"2026-08-13T10:30:00Z", end:"2026-08-13T12:30:00Z", cat:"共通", target:"学徒全員", place:"金沢会館", staff:"石川県支部長"},
+  {n:"青年チラシコンテスト", start:"2026-08-17", end:"2026-08-30", allDay:true, cat:"自支部／青年", target:"学徒全員", desc:"8/17〜8/30の2週間で実施"},
   {n:"OBAネット講師合宿", start:"2026-08-14", end:"2026-08-15", allDay:true, cat:"自支部／青年", target:"希望者（講）", desc:"8/14〜8/15の2日間"},
   {n:"高森先生のご恩を偲ぶ法要★", start:"2026-08-16T00:30:00Z", end:"2026-08-16T07:00:00Z", cat:"ご講演", target:"学徒全員", place:"親鸞会館", desc:"参加対象は親鸞学徒限定／配信はありません"},
   {n:"オンライン仏法讃嘆", start:"2026-08-16T11:00:00Z", end:"2026-08-16T11:50:00Z", cat:"共通", target:"学徒全員", place:"Zoom", staff:"松本光志先生", live:true},
@@ -251,7 +267,7 @@ const EVENTS = [
   {n:"班長会合●", start:"2026-08-24T10:30:00Z", end:"2026-08-24T12:30:00Z", cat:"自支部／青年", target:"班長以上", place:"金沢会館", staff:"松本光志先生", live:true},
   {n:"ひまわりデー", start:"2026-08-26", allDay:true, cat:"共通", target:"学徒全員"},
   {n:"教学試験★", start:"2026-08-28T01:00:00Z", end:"2026-08-28T03:00:00Z", cat:"共通", target:"学徒全員", place:"金沢会館", staff:"榎並麗子さん", desc:"21日までに受験お布施を納めて申し込み"},
-  {n:"青年合宿★", start:"2026-08-29T03:00:00Z", end:"2026-08-30T03:00:00Z", cat:"自支部／青年", target:"学徒全員", place:"京都 宇多野ユースホステル", staff:"新谷泰規先生", desc:"8/29〜8/30の2日間。時間は仮／場所の詳細は追って記載"},
+  {n:"青年合宿★", start:"2026-08-29T03:00:00Z", end:"2026-08-30T03:00:00Z", cat:"自支部／青年", target:"学徒全員", place:"京都 宇多野ユースホステル", staff:"新谷泰規先生", desc:"時間・場所の詳細は個別に伝達"},
   {n:"金沢花びら行進デー◎", start:"2026-08-30", allDay:true, cat:"共通", target:"縁正含む"},
   {n:"教学コンテスト", start:"2026-08-30T11:00:00Z", end:"2026-08-30T11:45:00Z", cat:"共通", target:"学徒全員", place:"配信", live:true},
   {n:"二千畳ご講演", start:"2026-09-06T00:30:00Z", end:"2026-09-06T07:00:00Z", cat:"ご講演", target:"学徒全員", place:"親鸞会館", desc:"『なぜ生きる』１００万部突破・ご発刊２５周年ご講演"},
@@ -273,6 +289,7 @@ function jstParts(iso){
 }
 
 // enrich events with jst date key + time text
+const SPANS = [];
 (function(){
   const out = [];
   const addDays = (key,n)=>{ const p=key.split("-"); return new Date(Date.UTC(+p[0],+p[1]-1,+p[2]+n)).toISOString().slice(0,10); };
@@ -298,6 +315,22 @@ function jstParts(iso){
       return;
     }
     const total = Math.round((Date.parse(eKey)-Date.parse(sKey))/86400000)+1;
+    if(total >= 3){
+      const a = Object.assign({}, e);
+      a.key = sKey; a.sortH = sortH; a.spanText = total+"日間";
+      a.timeText = sTime ? "開始 "+sTime+"〜" : "開始";
+      a.n = e.n + "（開始）";
+      a.spanOnly = true;
+      out.push(a);
+      const z = Object.assign({}, e);
+      z.key = eKey; z.sortH = 0; z.spanText = total+"日間";
+      z.timeText = eTime ? "締切 〜"+eTime : "締切";
+      z.n = e.n + "（締切）";
+      z.spanOnly = true;
+      out.push(z);
+      SPANS.push({n:e.n, cat:e.cat, target:e.target, sKey:sKey, eKey:eKey, total:total, ev:a});
+      return;
+    }
     let k = sKey, i = 0;
     while(k <= eKey){
       const c = Object.assign({}, e);
@@ -359,7 +392,17 @@ function renderCalendar(){
     if(dow===0)cell.classList.add("sun"); if(dow===6)cell.classList.add("sat");
     if(key===todayKey)cell.classList.add("today");
     const dn=document.createElement("div"); dn.className="dnum"; dn.textContent=d; cell.appendChild(dn);
-    eventsOn(key).forEach(e=>{
+    spansOn(key).forEach(s=>{
+      const sl=document.createElement("button"); sl.className="spanline "+catCls(s);
+      if(key===s.sKey) sl.classList.add("is-start");
+      if(key===s.eKey) sl.classList.add("is-end");
+      const showLabel = (key===s.sKey) || (dow===1);
+      sl.innerHTML = showLabel ? esc(s.n) : "&nbsp;";
+      sl.title = s.n+"（"+mdShort(s.sKey)+"〜"+mdShort(s.eKey)+"）";
+      sl.onclick=()=>openModal(s.ev);
+      cell.appendChild(sl);
+    });
+    eventsOn(key).filter(e=>!e.spanOnly).forEach(e=>{
       const b=document.createElement("button"); b.className="ev "+catCls(e)+(e.cat==="ご講演"?" lecture":"");
       let h="";
       h+="<span class='et'>"+esc(e.timeText||"終日")+"</span>";
@@ -437,7 +480,23 @@ buildLegend("legendTarget", TARGET_ORDER, TARGETMAP, disabledTarget, e=>e.target
 document.getElementById("overlay").onclick=(ev)=>{ if(ev.target.id==="overlay")closeModal(); };
 document.addEventListener("keydown",(ev)=>{ if(ev.key==="Escape")closeModal(); });
 
-function renderAll(){ renderMonthsNav(); renderCalendar(); renderList(); }
+function mdShort(k){ const p=k.split("-"); return (+p[1])+"/"+(+p[2]); }
+function spansOn(key){ return SPANS.filter(s=>evVisible(s) && s.sKey<=key && key<=s.eKey); }
+function renderSpans(){
+  const c = document.getElementById("spans"); if(!c) return;
+  c.innerHTML = "";
+  const m = MONTHS[curMonth];
+  const last = new Date(Date.UTC(m.y, m.m, 0)).getUTCDate();
+  const mStart = keyFor(m.y, m.m, 1), mEnd = keyFor(m.y, m.m, last);
+  SPANS.filter(s=>evVisible(s) && s.sKey<=mEnd && s.eKey>=mStart).forEach(s=>{
+    const live = (todayKey>=s.sKey && todayKey<=s.eKey);
+    const d = document.createElement("div");
+    d.className = "spanbar "+catCls(s);
+    d.innerHTML = "<span class='sb-badge'>"+(live?"開催中":"開催予定")+"</span><span class='sb-name'>"+esc(s.n)+"</span><span class='sb-date'>"+mdShort(s.sKey)+"〜"+mdShort(s.eKey)+"（"+s.total+"日間）</span>";
+    c.appendChild(d);
+  });
+}
+function renderAll(){ renderMonthsNav(); renderSpans(); renderCalendar(); renderList(); }
 renderAll();
 </script>
 </body>
