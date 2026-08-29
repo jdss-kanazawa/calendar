@@ -1,521 +1,372 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>青年部金沢地区の日程表</title>
 <style>
-  :root{
-    --text:#2C2C2B; --text2:#7D7A75; --canvas:#FFFFFF; --soft:#F9F8F7;
-    --soft2:#F0EFED; --border:#E6E5E3;
-    --blue:#2783DE; --blue-soft:#E5F2FC;
-    --green:#46A171; --green-soft:#E8F1EC;
-    --red:#E56458; --red-soft:#FCE9E7;
-    --orange:#D5803B; --orange-soft:#FBEBDE;
-  }
-  *{box-sizing:border-box;}
-  body{
-    margin:0; background:var(--soft); color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Hiragino Kaku Gothic ProN','Noto Sans JP',Meiryo,sans-serif;
-    font-size:15px; line-height:1.5;
-  }
-  .wrap{max-width:1120px; margin:0 auto; padding:20px 16px 48px;}
-  header.top{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:16px;}
-  h1{font-size:22px; margin:0; letter-spacing:.01em;}
-  .sub{color:var(--text2); font-size:13px; margin-top:2px;}
-  .months{display:flex; gap:6px;}
-  .months button{
-    font:inherit; font-size:14px; font-weight:600; cursor:pointer;
-    border:1px solid var(--border); background:var(--canvas); color:var(--text2);
-    padding:8px 14px; border-radius:8px; transition:all .15s;
-  }
-  .months button:hover{background:var(--soft2);}
-  .months button.active{background:var(--text); color:#fff; border-color:var(--text);}
-
-  .toolbar{display:flex; flex-direction:column; gap:8px; margin-bottom:16px; background:var(--canvas); border:1px solid var(--border); border-radius:10px; padding:10px 12px;}
-  .legend{display:flex; gap:14px; flex-wrap:wrap; align-items:center;}
-  .legend .item{display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text2); cursor:pointer; user-select:none; padding:4px 8px; border-radius:6px; border:1px solid transparent;}
-  .legend .item:hover{background:var(--soft2);}
-  .legend .item.off{opacity:.35;}
-  .fgroup{display:flex; align-items:flex-start; gap:8px;}
-  .flabel{font-size:12px; font-weight:700; color:var(--text2); flex:none; padding-top:5px; width:34px;}
-  .addnote{margin-top:14px; padding:12px 14px; border:1px solid var(--blue); border-radius:10px; background:var(--blue-soft); font-size:13px; line-height:1.7; color:var(--text);}
-  .addnote a{color:var(--blue); font-weight:700; text-decoration:underline;}
-  .updated{margin-top:8px; text-align:right; font-size:11px; color:var(--text2); opacity:.75;}
-  .spanline{display:block; width:calc(100% + 12px); margin:0 -6px 3px; padding:2px 6px; border:none; font:inherit; font-size:10.5px; font-weight:700; line-height:1.5; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#FFFFFF; background:#B9B6B1; cursor:pointer;}
-  .spanline.blue{background:var(--blue);} .spanline.red{background:var(--red);} .spanline.green{background:var(--green);}
-  .spanline.is-start{width:calc(100% + 6px); margin-left:0; border-radius:5px 0 0 5px;}
-  .spanline.is-end{width:calc(100% + 6px); margin-right:0; border-radius:0 5px 5px 0;}
-  .spanline.is-start.is-end{width:100%; border-radius:5px;}
-  .spans{display:none; flex-direction:column; gap:6px; margin-bottom:10px;}
-  .spanbar{display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:8px 12px; border-radius:9px; border:1px solid var(--border); background:var(--soft); font-size:13px; font-weight:700; color:var(--text);}
-  .spanbar.blue{background:var(--blue-soft); border-color:var(--blue); color:#1b5c9e;}
-  .spanbar.red{background:var(--red-soft); border-color:var(--red); color:#8f2f27;}
-  .spanbar.green{background:var(--green-soft); border-color:var(--green); color:#2c6b4a;}
-  .spanbar .sb-badge{font-size:11px; padding:2px 8px; border-radius:999px; background:#FFFFFF; border:1px solid currentColor;}
-  .spanbar .sb-date{font-size:12px; font-weight:600; opacity:.85;}
-  .fnote{font-size:12px; color:var(--text2); background:var(--soft); border-radius:7px; padding:6px 10px; margin-bottom:2px;}
-  .dot{width:11px; height:11px; border-radius:3px; flex:none;}
-  .dot.blue{background:var(--blue);} .dot.green{background:var(--green);} .dot.red{background:var(--red);}
-  .dot.gray{background:#B9B6B1;} .dot.amber{background:#E0A93B;} .dot.purple{background:#9A6BCB;}
-
-  .cal{background:var(--canvas); border:1px solid var(--border); border-radius:12px; overflow:hidden;}
-  .dow{display:grid; grid-template-columns:repeat(7,1fr); background:var(--soft); border-bottom:1px solid var(--border);}
-  .dow div{padding:8px 6px; text-align:center; font-size:12px; font-weight:600; color:var(--text2);}
-  .dow div.sun{color:var(--red);} .dow div.sat{color:var(--blue);}
-  .grid{display:grid; grid-template-columns:repeat(7,1fr);}
-  .cell{min-height:132px; min-width:0; overflow:hidden; border-right:1px solid var(--border); border-bottom:1px solid var(--border); padding:6px 6px 8px; position:relative; background:var(--canvas);}
-  .cell:nth-child(7n){border-right:none;}
-  .cell.pad{background:var(--soft);}
-  .cell .dnum{font-size:12.5px; font-weight:600; color:var(--text2); margin-bottom:4px;}
-  .cell.today .dnum{background:var(--blue); color:#fff; border-radius:50%; width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center;}
-  .cell.sun .dnum{color:var(--red);} .cell.sat .dnum{color:var(--blue);}
-  .ev{display:block; width:100%; max-width:100%; text-align:left; font:inherit; cursor:pointer; border:none; border-radius:7px; padding:5px 8px; margin-bottom:4px; line-height:1.3; overflow:hidden; border-left:3px solid transparent;}
-  .ev.blue{background:var(--blue-soft); color:#12507f; border-left-color:var(--blue);}
-  .ev.green{background:var(--green-soft); color:#1f5c3d; border-left-color:var(--green);}
-  .ev.red{background:var(--red-soft); color:#8f2f27; border-left-color:var(--red);}
-  .ev.gray{background:var(--soft2); color:#4a4844; border-left-color:#B9B6B1;}
-  .ev.lecture{border-left-width:6px; padding:8px 10px; box-shadow:inset 0 0 0 2px var(--red);}
-  .ev.lecture .et{font-size:12px;}
-  .ev.lecture .en{font-size:15px; font-weight:800; line-height:1.25;}
-  .ev.lecture .ep{font-size:12px;}
-  .li.lecture{background:var(--red-soft);}
-  .li.lecture .bar{width:6px;}
-  .li.lecture .nm{font-size:16px; font-weight:800;}
-  .li.lecture .time{font-weight:700; color:#8f2f27;}
-  .ev .et{display:block; font-size:10.5px; font-weight:600; opacity:.8; font-variant-numeric:tabular-nums;}
-  .ev .en{display:block; font-size:12px; font-weight:700; margin:1px 0; word-break:break-word; white-space:normal;}
-  .ev .ep{display:block; font-size:10.5px; opacity:.72; word-break:break-word; white-space:normal;}
-  .tags{display:flex; flex-wrap:wrap; gap:3px; margin-top:3px;}
-  .tag{font-size:10px; padding:1px 7px; border-radius:10px; font-weight:600; line-height:1.5; white-space:nowrap;}
-  .tag.blue{background:#fff; color:#12507f; box-shadow:inset 0 0 0 1px var(--blue);}
-  .tag.red{background:#fff; color:#8f2f27; box-shadow:inset 0 0 0 1px var(--red);}
-  .tag.green{background:#fff; color:#1f5c3d; box-shadow:inset 0 0 0 1px var(--green);}
-  .tag.gray{background:#fff; color:#5c5954; box-shadow:inset 0 0 0 1px #B9B6B1;}
-  .tag.amber{background:#fff; color:#8a6414; box-shadow:inset 0 0 0 1px #E0A93B;}
-  .tag.purple{background:#fff; color:#67418f; box-shadow:inset 0 0 0 1px #9A6BCB;}
-  .tag.live{background:var(--orange-soft); color:#9a561f;}
-  .legcat{display:inline-block; font-size:12px; font-weight:700; padding:3px 10px; border-radius:7px; border-left:3px solid transparent;}
-  .legcat.blue{background:var(--blue-soft); color:#12507f; border-left-color:var(--blue);}
-  .legcat.red{background:var(--red-soft); color:#8f2f27; border-left-color:var(--red);}
-  .legcat.green{background:var(--green-soft); color:#1f5c3d; border-left-color:var(--green);}
-  .legcat.gray{background:var(--soft2); color:#4a4844; border-left-color:#B9B6B1;}
-
-  /* list view for mobile */
-  .listview{display:none;}
-  .day-group{background:var(--canvas); border:1px solid var(--border); border-radius:10px; margin-bottom:10px; overflow:hidden;}
-  .day-head{padding:8px 12px; background:var(--soft); font-weight:700; font-size:13px; border-bottom:1px solid var(--border); display:flex; gap:8px; align-items:baseline;}
-  .day-head .wd{font-size:12px; color:var(--text2); font-weight:600;}
-  .li{display:flex; gap:10px; padding:10px 12px; cursor:pointer; border-bottom:1px solid var(--soft2);}
-  .li:last-child{border-bottom:none;}
-  .li:hover{background:var(--soft);}
-  .li .bar{width:3px; border-radius:2px; flex:none;}
-  .li .bar.blue{background:var(--blue);} .li .bar.green{background:var(--green);} .li .bar.red{background:var(--red);} .li .bar.gray{background:#B9B6B1;}
-  .li .time{font-size:12px; color:var(--text2); flex:none; width:78px; font-variant-numeric:tabular-nums;}
-  .li .nm{font-size:13.5px; font-weight:600;}
-  .li .meta{font-size:12px; color:var(--text2); margin-top:2px;}
-  .spanwrap{position:relative; padding-left:30px;}
-  .vbar{position:absolute; left:0; top:0; bottom:10px; width:22px; border-radius:8px; background:#B9B6B1; color:#FFFFFF; display:flex; align-items:flex-start; justify-content:center; padding:10px 0; cursor:pointer; overflow:hidden;}
-  .vbar span{writing-mode:vertical-rl; font-size:11px; font-weight:700; letter-spacing:.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-height:100%;}
-  .vbar.blue{background:var(--blue);} .vbar.red{background:var(--red);} .vbar.green{background:var(--green);}
-
-  /* modal */
-  .overlay{position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; align-items:center; justify-content:center; padding:16px; z-index:50;}
-  .overlay.on{display:flex;}
-  .modal{background:var(--canvas); border-radius:14px; max-width:440px; width:100%; max-height:88vh; overflow:auto; box-shadow:0 12px 40px rgba(0,0,0,.18);}
-  .modal .mh{padding:18px 20px 14px; border-bottom:1px solid var(--border); position:relative;}
-  .modal .cat{display:inline-block; font-size:12px; font-weight:700; padding:3px 10px; border-radius:20px; margin-bottom:8px;}
-  .cat.blue{background:var(--blue-soft); color:#12507f;} .cat.green{background:var(--green-soft); color:#1f5c3d;} .cat.red{background:var(--red-soft); color:#8f2f27;} .cat.gray{background:var(--soft2); color:#4a4844;}
-  .modal h2{font-size:18px; margin:0; line-height:1.35;}
-  .modal .close{position:absolute; top:14px; right:14px; border:none; background:var(--soft2); width:30px; height:30px; border-radius:8px; cursor:pointer; font-size:16px; color:var(--text2);}
-  .modal .close:hover{background:var(--border);}
-  .rows{padding:14px 20px 20px;}
-  .row{display:flex; gap:12px; padding:8px 0; border-bottom:1px solid var(--soft2); font-size:14px;}
-  .row:last-child{border-bottom:none;}
-  .row .k{flex:none; width:74px; color:var(--text2); font-size:13px;}
-  .row .v{flex:1;}
-  .row .v a{color:var(--blue); word-break:break-all;}
-  .badge{display:inline-block; font-size:11.5px; padding:2px 8px; border-radius:6px; background:var(--soft2); color:var(--text2); margin:2px 4px 2px 0;}
-  .badge.live{background:var(--orange-soft); color:#9a561f;}
-  .empty{color:var(--text2); text-align:center; padding:40px 0; font-size:14px;}
-  footer{margin-top:18px; text-align:center; color:var(--text2); font-size:12px;}
-
-  @media (orientation:portrait){
-    .calview{display:none;}
-    .listview{display:block;}
-    h1{font-size:19px;}
-    .months button{flex:1; padding:8px 6px;}
-    .months{width:100%;}
-  }
+:root{
+  --text:#2C2C2B; --sub:#7D7A75; --canvas:#FFFFFF; --soft:#F9F8F7; --soft2:#F0EFED; --border:#E6E5E3;
+  --c-koen:#E56458; --c-koen-bg:#FCE9E7;
+  --c-jishibu:#2783DE; --c-jishibu-bg:#E5F2FC;
+  --c-kyotsu:#46A171; --c-kyotsu-bg:#E8F1EC;
+  --c-tashibu:#8A8781; --c-tashibu-bg:#F0EFED;
+  --g-purple:#8E6BC0; --g-green:#46A171; --g-blue:#2783DE; --g-gray:#8A8781; --g-red:#E56458; --g-amber:#C08A1F;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{-webkit-text-size-adjust:100%;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
+  color:var(--text); background:var(--canvas); line-height:1.5;}
+.wrap{max-width:1100px; margin:0 auto; padding:12px 16px 24px;}
+h1{font-size:1.5rem; font-weight:700; margin:4px 0 2px;}
+.note{font-size:.8rem; color:var(--sub); margin-bottom:8px;}
+/* month nav */
+.mnav{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:8px 0 10px;}
+.mnav button.nav{border:1px solid var(--border); background:var(--soft); border-radius:8px;
+  min-width:44px; min-height:36px; font-size:1rem; cursor:pointer; color:var(--text);}
+.mtabs{display:flex; gap:6px; flex-wrap:wrap;}
+.mtab{border:1px solid var(--border); background:#fff; border-radius:8px; padding:5px 12px;
+  font-size:.85rem; cursor:pointer; color:var(--sub); min-height:36px;}
+.mtab.active{background:var(--text); color:#fff; border-color:var(--text); font-weight:600;}
+/* legend */
+.legend{display:flex; flex-direction:column; gap:6px; margin-bottom:10px;}
+.legrow{display:flex; align-items:center; gap:6px; flex-wrap:wrap;}
+.leglabel{font-size:.75rem; color:var(--sub); min-width:2.6em;}
+.chip{display:inline-flex; align-items:center; gap:4px; border-radius:6px; padding:2px 8px;
+  font-size:.78rem; cursor:pointer; border:1px solid transparent; min-height:26px; user-select:none;}
+.chip .dot{width:9px; height:9px; border-radius:3px; display:inline-block;}
+.chip.off{opacity:.32; text-decoration:line-through;}
+.chip.cat{font-weight:600;}
+.chip.tgt{background:#fff; border-width:1.5px; border-style:solid;}
+/* calendar */
+#calView{display:none;}
+body.land #calView{display:block;}
+body.land #listView{display:none;}
+#listView{display:block;}
+body.land #listView{display:none;}
+.dowrow{display:grid; grid-template-columns:repeat(7,1fr); border-left:1px solid var(--border); border-top:1px solid var(--border);}
+.dow{border-right:1px solid var(--border); padding:3px 0; text-align:center; font-size:.75rem; font-weight:600; color:var(--sub); background:var(--soft);}
+.dow.sun{color:#C0433B;}
+.grid{display:grid; grid-template-columns:repeat(7,1fr); border-left:1px solid var(--border);}
+.cell{border-right:1px solid var(--border); border-bottom:1px solid var(--border); min-height:96px;
+  padding:2px 3px 4px; display:flex; flex-direction:column; gap:2px; background:#fff; overflow:hidden;}
+.cell.dim{background:var(--soft);}
+.cell.dim .dnum{color:#B9B6B1;}
+.dnum{font-size:.78rem; font-weight:700; color:var(--text); padding:0 2px;}
+.cell.today .dnum{background:var(--text); color:#fff; border-radius:6px; display:inline-block; padding:0 5px;}
+.cell.today{box-shadow:inset 0 0 0 2px var(--text);}
+.bar{height:5px; border-radius:3px; margin:1px -4px; cursor:pointer; position:relative;}
+.bar.bstart{margin-left:2px;}
+.bar.bend{margin-right:2px;}
+.barname{font-size:.62rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; padding:0 1px;}
+.ev{border-radius:6px; padding:2px 5px; font-size:.72rem; line-height:1.35; cursor:pointer;
+  border:1px solid; overflow:hidden;}
+.ev .tm{font-weight:700; margin-right:3px;}
+.ev .nm{font-weight:600; display:block; overflow:hidden; text-overflow:ellipsis;}
+.ev .lc{color:var(--sub); font-size:.66rem; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.ev.koen{font-size:.85rem; border-width:2.5px; padding:4px 7px;}
+.ev.koen .nm{font-size:.92rem;}
+.ev.koen .lc{font-size:.72rem;}
+/* list view */
+.dayblock{display:flex; border:1px solid var(--border); border-radius:10px; margin-bottom:8px; overflow:hidden; background:#fff;}
+.pbar{flex:0 0 30px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+  cursor:pointer; padding:6px 0;}
+.pbar .vlabel{writing-mode:vertical-rl; font-size:.62rem; font-weight:700; letter-spacing:.05em;}
+.pbar .vname{writing-mode:vertical-rl; font-size:.68rem; max-height:120px; overflow:hidden;}
+.dhead{flex:0 0 64px; background:var(--soft); padding:8px 4px; text-align:center; border-right:1px solid var(--border);}
+.dhead .md{font-size:.95rem; font-weight:700;}
+.dhead .wk{font-size:.7rem; color:var(--sub);}
+.dhead .wk.sun{color:#C0433B;}
+.dbody{flex:1; padding:6px 8px; display:flex; flex-direction:column; gap:5px;}
+.lev{border:1px solid; border-radius:8px; padding:5px 9px; cursor:pointer; font-size:.85rem;}
+.lev .tm{font-weight:700; margin-right:5px;}
+.lev .nm{font-weight:600;}
+.lev .meta{font-size:.72rem; color:var(--sub); margin-top:1px;}
+.lev.koen{border-width:2.5px; font-size:.95rem; padding:7px 11px;}
+.lev.koen .nm{font-size:1rem;}
+.noev{color:#B9B6B1; font-size:.75rem; padding:2px 0;}
+/* footer */
+.foot{margin-top:16px; padding-top:12px; border-top:1px solid var(--border); font-size:.85rem;}
+.foot a{color:var(--c-jishibu);}
+.upd{text-align:right; font-size:.68rem; color:#B9B6B1; margin-top:6px;}
+/* modal */
+#overlay{position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; align-items:center; justify-content:center; padding:16px; z-index:50;}
+#overlay.on{display:flex;}
+#modal{background:#fff; border-radius:12px; max-width:480px; width:100%; max-height:85vh; overflow:auto; padding:18px 20px;}
+#modal h2{font-size:1.1rem; margin-bottom:8px; line-height:1.4;}
+#modal .row{font-size:.85rem; margin:5px 0;}
+#modal .lbl{color:var(--sub); font-size:.72rem; margin-right:6px;}
+#modal a{color:var(--c-jishibu); word-break:break-all;}
+#mclose{margin-top:12px; width:100%; min-height:44px; border:1px solid var(--border); background:var(--soft); border-radius:8px; font-size:.9rem; cursor:pointer;}
+.tagchip{display:inline-block; border-radius:6px; padding:1px 8px; font-size:.75rem; font-weight:600; border:1px solid; margin-right:4px;}
+@media (max-width:520px){
+  h1{font-size:1.2rem;}
+  .cell{min-height:64px;}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header class="top">
-    <div>
-      <h1>📅 青年部金沢地区の日程表</h1>
-    </div>
-    <div class="months" id="months"></div>
-  </header>
-
-  <div class="toolbar">
-    <div class="fnote">💡 下の「分類」・「対象」のラベルをクリックすると、その行事の表示／非表示を切り替えられます。</div>
-    <div class="fgroup"><span class="flabel">分類</span><div class="legend" id="legendCat"></div></div>
-    <div class="fgroup"><span class="flabel">対象</span><div class="legend" id="legendTarget"></div></div>
+  <h1>青年部金沢地区の日程表</h1>
+  <div class="note">下の「分類」「対象」のラベルをクリックすると、該当する行事の表示／非表示を切り替えられます。</div>
+  <div class="legend" id="legend"></div>
+  <div class="mnav">
+    <button class="nav" id="prevM" aria-label="前の月">◀</button>
+    <div class="mtabs" id="mtabs"></div>
+    <button class="nav" id="nextM" aria-label="次の月">▶</button>
   </div>
-
-  <div class="spans" id="spans"></div>
-
-  <div class="calview">
-    <div class="cal">
-      <div class="dow"><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div class="sat">土</div><div class="sun">日</div></div>
-      <div class="grid" id="grid"></div>
-    </div>
+  <div id="calView">
+    <div class="dowrow" id="dowrow"></div>
+    <div class="grid" id="grid"></div>
   </div>
-
-  <div class="listview" id="listview"></div>
-
-  <div class="addnote">📗 青年・一般向け勉強会の詳細を知りたい方は、こちらを参照してください。<br><a href="https://www.kokuchpro.com/group/kanazawabuddhism/" target="_blank" rel="noopener">ベル・クルール〜Belle Couleur（こくちーず）</a></div>
-  <div class="updated">最終更新: 2026/7/29 23:20</div>
+  <div id="listView"></div>
+  <div class="foot">
+    青年一般向け勉強会の詳細を知りたい方はこちらを参照してください<br>
+    <a href="https://www.kokuchpro.com/group/kanazawabuddhism/" target="_blank" rel="noopener">ベル・クルール〜Belle Couleur - こくちーず</a>
+    <div class="upd">最終更新: 2026/8/29 15:46</div>
+  </div>
 </div>
-
-<div class="overlay" id="overlay">
-  <div class="modal" id="modal"></div>
-</div>
-
+<div id="overlay"><div id="modal"></div></div>
 <script>
-const CATMAP = {
-  "自支部／青年": {cls:"blue", label:"自支部／青年"},
-  "ご講演": {cls:"red", label:"ご講演"},
-  "共通": {cls:"green", label:"共通"},
-  "他支部": {cls:"gray", label:"他支部"}
-};
-const TARGETMAP = {
-  "副地区長以上": {cls:"purple"},
-  "会計以上": {cls:"green"},
-  "大班長以上": {cls:"purple"},
-  "班長以上": {cls:"blue"},
-  "学徒全員": {cls:"gray"},
-  "縁正含む": {cls:"red"},
-  "希望者（講）": {cls:"amber"}
-};
-const CAT_ORDER = ["ご講演","自支部／青年","共通","他支部"];
-const TARGET_ORDER = ["副地区長以上","会計以上","大班長以上","班長以上","学徒全員","縁正含む","希望者（講）"];
-
-const EVENTS = [
-  {n:"班長会合●", start:"2026-07-03T10:30:00Z", end:"2026-07-03T12:30:00Z", cat:"自支部／青年", target:"班長以上", place:"平手努様宅", staff:"松本光志先生", live:true, desc:"青年会合。19:30から勤行"},
-  {n:"金沢花びら行進デー", start:"2026-07-04", allDay:true, cat:"共通", target:"学徒全員"},
-  {n:"心を整えるブッダの教え〜悪循環から抜け出し、自分軸で生きるには", start:"2026-07-04T05:00:00Z", end:"2026-07-04T06:30:00Z", cat:"自支部／青年", target:"縁正含む", place:"メープルハウス本店", placeDetail:"2階", desc:"悩みを何でも打ち明けられる居場所に出会える(*^^*)学びと交流の勉強会です"},
-  {n:"人に恵まれる人になる〜今日からできる”7つの習慣”", start:"2026-07-04T10:00:00Z", end:"2026-07-04T11:00:00Z", cat:"自支部／青年", target:"縁正含む", place:"ミスタードーナツ イオンモールかほくショップ", desc:"悩みを何でも打ち明けられる居場所に出会える(*^^*)学びと交流の勉強会です"},
-  {n:"二千畳ご講演", start:"2026-07-05T00:30:00Z", end:"2026-07-05T07:00:00Z", cat:"ご講演", target:"学徒全員", place:"親鸞会館", desc:"『なぜ生きる』１００万部突破・ご発刊２５周年ご講演"},
-  {n:"オンライン仏法讃嘆", start:"2026-07-05T11:00:00Z", end:"2026-07-05T11:50:00Z", cat:"共通", target:"学徒全員", place:"Zoom", staff:"松本光志先生", live:true},
-  {n:"講演会準備★", start:"2026-07-10T09:00:00Z", end:"2026-07-10T12:00:00Z", cat:"共通", target:"学徒全員", place:"野々市市交遊舎", staff:"石川県支部長"},
-  {n:"【オンラインサロン】自分を見失っていると感じるあなたへ〜ブッダに学ぶ、”本当の自分”とは", start:"2026-07-10T12:00:00Z", end:"2026-07-10T12:45:00Z", cat:"自支部／青年", target:"縁正含む", place:"オンライン", desc:"日々の忙しさの中で、ふと「自分を見失っている」と感じることはありませんか?"},
-  {n:"映画「親鸞 人生の目的」上映会◎", start:"2026-07-11T01:00:00Z", end:"2026-07-11T03:00:00Z", cat:"共通", target:"縁正含む", place:"野々市市交遊舎", staff:"石川県支部長"},
-  {n:"やさしい哲学カフェ in 金沢 〜日常のちいさな問いから、人生を語る〜", start:"2026-07-11T01:30:00Z", end:"2026-07-11T03:00:00Z", cat:"自支部／青年", target:"縁正含む", place:"メープルハウス本店", desc:"楽しく心地よく語り合いながら、人生の深いテーマを少しだけ覗いてみませんか?"},
-  {n:"歎異抄講演会◎", start:"2026-07-11T04:30:00Z", end:"2026-07-11T06:10:00Z", cat:"共通", target:"縁正含む", place:"野々市市交遊舎", staff:"石川県支部長"},
-  {n:"ビデオ教学座談会★", start:"2026-07-13T04:30:00Z", end:"2026-07-13T06:45:00Z", cat:"共通", target:"学徒全員", place:"金沢会館", staff:"榎並麗子さん", desc:"高森先生の座談会を聞かせていただくご縁です"},
-  {n:"【カフェ開催】心のモヤモヤ、ここでリリース〜大学では教えてくれない「生き方の哲学」", start:"2026-07-17T10:30:00Z", end:"2026-07-17T11:30:00Z", cat:"自支部／青年", target:"縁正含む", place:"コメダ珈琲もりの里店", desc:"自分の心を整理し、自分らしく歩き出すためのヒントを見つけるカフェ会です"},
-  {n:"青年地区会合★", start:"2026-07-18T01:00:00Z", end:"2026-07-18T03:00:00Z", cat:"自支部／青年", target:"学徒全員", place:"金沢会館", staff:"新谷泰規先生", live:true, desc:"朝10時お勤め"},
-  {n:"勉強会★", start:"2026-07-18T05:00:00Z", end:"2026-07-18T06:30:00Z", cat:"共通", target:"学徒全員", place:"金沢会館", staff:"渡部隆志先生", live:true},
-  {n:"心がふっと軽くなる仏教講座 〜負の流れをほどくブッダの知恵〜", start:"2026-07-18T05:00:00Z", end:"2026-07-18T06:30:00Z", cat:"自支部／青年", target:"縁正含む", place:"金沢Rise", desc:"予備知識ゼロでも大丈夫!仏教の基礎からやさしく学びます"},
-  {n:"金沢会館大掃除★", start:"2026-07-18T06:45:00Z", end:"2026-07-18T08:15:00Z", cat:"共通", target:"学徒全員", place:"金沢会館", staff:"宿野栄一さん"},
-  {n:"輝きセミナー（全国ネット顕正セミナー）", start:"2026-07-18T10:00:00Z", end:"2026-07-18T11:00:00Z", cat:"共通", target:"学徒全員", place:"Zoom", live:true},
-  {n:"二千畳Ｑ＆Ａ", start:"2026-07-19T00:30:00Z", end:"2026-07-19T07:00:00Z", cat:"ご講演", target:"学徒全員", place:"親鸞会館"},
-  {n:"オンライン仏法讃嘆", start:"2026-07-19T11:00:00Z", end:"2026-07-19T11:50:00Z", cat:"共通", target:"学徒全員", place:"Zoom", staff:"松本光志先生", live:true},
-  {n:"青年本部 連絡会合", start:"2026-07-20T11:30:00Z", end:"2026-07-20T12:00:00Z", cat:"自支部／青年", target:"学徒全員", place:"Zoom", staff:"新谷泰規先生", live:true},
-  {n:"教学試験★", start:"2026-07-21T01:00:00Z", end:"2026-07-21T03:00:00Z", cat:"共通", target:"学徒全員", place:"金沢会館", staff:"榎並麗子さん", desc:"１４日までに受験お布施を納めて申し込み"},
-  {n:"先生と学徒との対話", start:"2026-07-22T04:30:00Z", end:"2026-07-22T05:30:00Z", cat:"ご講演", target:"学徒全員"},
-  {n:"先生と学徒との対話", start:"2026-07-22T11:00:00Z", end:"2026-07-22T12:00:00Z", cat:"ご講演", target:"学徒全員"},
-  {n:"ひまわりデー", start:"2026-07-23", allDay:true, cat:"共通", target:"学徒全員"},
-  {n:"【かほく】哲学トーク交流会inカフェ", start:"2026-07-24T10:00:00Z", end:"2026-07-24T11:00:00Z", cat:"自支部／青年", target:"縁正含む", place:"ミスタードーナツ イオンモールかほくショップ", desc:"一杯のコーヒーと、こころを整える哲学対話。ちょっと贅沢な大人の交流会です"},
-  {n:"【仕事終わり、ちょっと一息】グルメ漫画について語る、大人の交流会", start:"2026-07-24T10:00:00Z", end:"2026-07-24T11:00:00Z", cat:"自支部／青年", target:"縁正含む", place:"ミスタードーナツ イオンモールかほくショップ", desc:"カフェで交流会しています♪今回はマンガファン主催、グルメ漫画について語る交流会です"},
-  {n:"教学顕正会合★", start:"2026-07-24T10:30:00Z", end:"2026-07-24T12:30:00Z", cat:"自支部／青年", target:"学徒全員", place:"金沢会館", staff:"落合孝臣先生", live:true},
-  {n:"【女性限定・ブルージーン朝活】ついついイライラしてしまうからこそ心にゆとりを〜ゆったりモーニングと朝活しませんか", start:"2026-07-24T23:40:00Z", end:"2026-07-25T01:00:00Z", cat:"自支部／青年", target:"縁正含む", place:"タリーズコーヒー金沢入江店", desc:"モーニングとトークを楽しむ朝活です(*^^*)"},
-  {n:"【金沢】カフェで楽しく♪〜哲学トーク交流会", start:"2026-07-25T01:00:00Z", end:"2026-07-25T02:00:00Z", cat:"自支部／青年", target:"縁正含む", place:"星乃珈琲 金沢押野店", desc:"カフェで交流会しています♪普段はできない深いぃ〜話をしてみませんか"},
-  {n:"ビデオ教学座談会", start:"2026-07-25T04:30:00Z", end:"2026-07-25T06:30:00Z", cat:"自支部／青年", target:"希望者（講）", place:"金沢会館", staff:"渡辺翼さん", desc:"高森先生の座談会です（お勤めなし・配信なし）"},
-  {n:"家族友人顕正[プラスわん]会合", start:"2026-07-25T12:00:00Z", end:"2026-07-25T13:00:00Z", cat:"自支部／青年", target:"希望者（講）", place:"オンライン", live:true},
-  {n:"【金沢開催】ブッダとアドラー心理学に学ぶカフェ〜劣等感がプラスの力に変わるメソッド", start:"2026-07-26T01:00:00Z", end:"2026-07-26T02:00:00Z", cat:"自支部／青年", target:"縁正含む", place:"星乃珈琲店 金沢押野店", desc:"アドラー心理学とブッダの言葉から、モヤモヤを解消して、心地よい人間関係を築くヒントをお話しします"},
-  {n:"金沢・ゆる哲カフェ交流会 〜変わりたいのに変われない、1歩を踏み出すポイントとは", start:"2026-07-26T05:00:00Z", end:"2026-07-26T06:00:00Z", cat:"自支部／青年", target:"縁正含む", place:"菓ふぇMURAKAMIクロスゲート金沢店", placeDetail:"金沢駅前", desc:"お茶をしながらゆっくりお話ししませんか? 哲学的なテーマからカジュアルに交流するカフェ会です"},
-  {n:"埼玉春日部・栃木宇都宮会館落慶式", start:"2026-07-29T00:30:00Z", end:"2026-07-29T03:15:00Z", cat:"共通", target:"学徒全員"},
-  {n:"自分を変えたいあなたへ〜人生を好転させる”6つの習慣”", start:"2026-07-29T10:00:00Z", end:"2026-07-29T11:00:00Z", cat:"自支部／青年", target:"縁正含む", place:"ミスタードーナツ イオンモールかほくショップ", desc:"悩みを何でも打ち明けられる居場所に出会える(*^^*)学びと交流の勉強会です"},
-  {n:"【オンラインサロン】やさしい哲学〜頑張ってきたあなたへ ブッダに学ぶ『運のいい人』の種まきとは?", start:"2026-07-29T12:00:00Z", end:"2026-07-29T12:45:00Z", cat:"自支部／青年", target:"縁正含む", place:"オンライン", desc:"ブッダは私たちの日々の思いや行動が、未来の人生を少しずつ形づくっていく。そんな「人生の法則」を教えられています。"},
-  {n:"親鸞学徒セミナー★", start:"2026-07-31T10:30:00Z", end:"2026-07-31T12:30:00Z", cat:"共通", target:"学徒全員", place:"金沢会館", staff:"石川県支部長"},
-  {n:"紫雲閣 遷仏会", start:"2026-08-01T04:30:00Z", end:"2026-08-01T06:30:00Z", cat:"共通", target:"学徒全員", place:"紫雲閣"},
-  {n:"親鸞学徒追悼法要", start:"2026-08-02T00:30:00Z", end:"2026-08-02T07:00:00Z", cat:"ご講演", target:"学徒全員", place:"親鸞会館", desc:"『なぜ生きる』１００万部突破・ご発刊２５周年ご講演"},
-  {n:"オンライン仏法讃嘆", start:"2026-08-02T11:00:00Z", end:"2026-08-02T11:50:00Z", cat:"共通", target:"学徒全員", place:"Zoom", staff:"松本光志先生", live:true},
-  {n:"親鸞学徒セミナー◎", start:"2026-08-06T05:00:00Z", end:"2026-08-06T07:00:00Z", cat:"共通", target:"学徒全員", place:"福井会館", staff:"福井県支部長", desc:"各会館で聞かせていただけます"},
-  {n:"【オンラインサロン】「変われない」私が変わる、たった一つの方法とは〜AIに聞いても分からない問に対するブッダの答え", start:"2026-08-06T12:00:00Z", end:"2026-08-06T12:45:00Z", cat:"自支部／青年", target:"縁正含む", place:"オンライン", staff:"高松良行先生", live:true, desc:"「頭ではわかっているけれど、行動に移せない」「結局、明日も同じ日常を繰り返している」そんなあなたへ"},
-  {n:"【かほく】カジュアルに語る〜哲学トーク交流会inカフェ", start:"2026-08-07T10:00:00Z", end:"2026-08-07T11:00:00Z", cat:"自支部／青年", target:"縁正含む", place:"ミスタードーナツ イオンモールかほくショップ", desc:"一杯のコーヒーと、こころを整える哲学対話。ちょっと贅沢な大人の交流会です"},
-  {n:"教学顕正会合★", start:"2026-08-07T10:30:00Z", end:"2026-08-07T12:30:00Z", cat:"自支部／青年", target:"学徒全員", place:"金沢会館", staff:"落合孝臣先生", live:true},
-  {n:"ベル・クルール異業種交流会", start:"2026-08-08T05:00:00Z", end:"2026-08-08T06:30:00Z", cat:"自支部／青年", target:"縁正含む", place:"金沢Rise", desc:"普段の仕事や生活の中ではなかなか出会わない人たちと、気軽につながれる交流会です。"},
-  {n:"親鸞学徒追悼法要", start:"2026-08-09T01:00:00Z", end:"2026-08-09T03:00:00Z", cat:"共通", target:"学徒全員", place:"金沢会館", staff:"宮本順子先生"},
-  {n:"親鸞学徒追悼法要", start:"2026-08-09T04:30:00Z", end:"2026-08-09T06:30:00Z", cat:"共通", target:"学徒全員", place:"金沢会館", staff:"柴加純先生"},
-  {n:"青年学徒会合★", start:"2026-08-11T01:00:00Z", end:"2026-08-11T03:00:00Z", cat:"自支部／青年", target:"学徒全員", place:"金沢会館", staff:"新谷泰規先生", live:true, desc:"朝10時お勤め"},
-  {n:"本音を飲み込んでしまうあなたへ 〜優しすぎる心を守るブッダの知恵〜", start:"2026-08-11T05:00:00Z", end:"2026-08-11T06:30:00Z", cat:"自支部／青年", target:"縁正含む", place:"メープルハウス本店", staff:"新谷泰規先生", desc:"予備知識ゼロでも大丈夫!仏教の基礎からやさしく学びます"},
-  {n:"親鸞学徒セミナー★", start:"2026-08-13T10:30:00Z", end:"2026-08-13T12:30:00Z", cat:"共通", target:"学徒全員", place:"金沢会館", staff:"石川県支部長"},
-  {n:"青年チラシコンテスト", start:"2026-08-17", end:"2026-08-30", allDay:true, cat:"自支部／青年", target:"学徒全員", desc:"8/17〜8/30の2週間で実施"},
-  {n:"OBAネット講師合宿", start:"2026-08-14", end:"2026-08-15", allDay:true, cat:"自支部／青年", target:"希望者（講）", desc:"8/14〜8/15の2日間"},
-  {n:"高森先生のご恩を偲ぶ法要★", start:"2026-08-16T00:30:00Z", end:"2026-08-16T07:00:00Z", cat:"ご講演", target:"学徒全員", place:"親鸞会館", desc:"参加対象は親鸞学徒限定／配信はありません"},
-  {n:"オンライン仏法讃嘆", start:"2026-08-16T11:00:00Z", end:"2026-08-16T11:50:00Z", cat:"共通", target:"学徒全員", place:"Zoom", staff:"松本光志先生", live:true},
-  {n:"ビデオ教学座談会★", start:"2026-08-17T01:00:00Z", end:"2026-08-17T03:15:00Z", cat:"共通", target:"学徒全員", place:"金沢会館", staff:"榎並麗子さん", desc:"高森先生の座談会です。配信はありません"},
-  {n:"青年学徒会合★", start:"2026-08-17T10:30:00Z", end:"2026-08-17T12:30:00Z", cat:"自支部／青年", target:"学徒全員", place:"平手努様宅", staff:"新谷泰規先生", live:true, desc:"19:30から勤行"},
-  {n:"東京八王子会館落慶式", start:"2026-08-19T03:00:00Z", end:"2026-08-19T05:30:00Z", cat:"共通", target:"学徒全員"},
-  {n:"先生と学徒との対話", start:"2026-08-19T04:30:00Z", end:"2026-08-19T05:30:00Z", cat:"ご講演", target:"学徒全員"},
-  {n:"先生と学徒との対話", start:"2026-08-19T11:00:00Z", end:"2026-08-19T12:00:00Z", cat:"ご講演", target:"学徒全員"},
-  {n:"青年会合★", start:"2026-08-20T11:00:00Z", end:"2026-08-20T12:00:00Z", cat:"自支部／青年", target:"学徒全員", place:"Zoom", staff:"高松良行先生", live:true},
-  {n:"【仕事終わり、ちょっと一息】グルメ漫画について語る、大人の交流会", start:"2026-08-21T10:00:00Z", end:"2026-08-21T11:00:00Z", cat:"自支部／青年", target:"縁正含む", place:"ミスタードーナツ イオンモールかほくショップ", desc:"カフェで交流会しています♪今回はマンガファン主催、グルメ漫画について語る交流会です"},
-  {n:"【オンラインサロン】有っても無くても同じってホント!?幸せの本質を知ると生き方が変わる☆彡", start:"2026-08-21T12:00:00Z", end:"2026-08-21T12:45:00Z", cat:"自支部／青年", target:"縁正含む", place:"オンライン", staff:"中村真與先生", desc:"様々な悩み、孤独、むなしさを解消し、心から充実した人生にするにはどうしたらよいのか、ブッダが教えた解決法を聞いていませんか☆"},
-  {n:"【夏の特別イベント】大人も自由研究!いっしょに楽しくお酒の勉強しませんか?「酒蔵見学&交流会 in 金沢」", start:"2026-08-22T04:20:00Z", end:"2026-08-22T07:00:00Z", cat:"自支部／青年", target:"縁正含む", place:"やちや酒造", desc:"大人になった今だからこそ、もっと深く、もっと楽しく。特別な夏を過ごしましょう"},
-  {n:"青年花びら行進デー", start:"2026-08-23", allDay:true, cat:"自支部／青年", target:"学徒全員", desc:"青年チラシコンテスト（8/17〜8/30）期間内の青年一斉チラシ配布デー。配布枚数はコンテスト集計の対象。"},
-  {n:"金沢・ゆる哲カフェ交流会 〜「このままでいいのかな…」夏にこそ考えたい、自分の”生きる意味”", start:"2026-08-23T05:00:00Z", end:"2026-08-23T06:00:00Z", cat:"自支部／青年", target:"縁正含む", place:"菓ふぇMURAKAMIクロスゲート金沢店", placeDetail:"金沢駅前", desc:"お茶をしながらゆっくりお話ししませんか? 哲学的なテーマからカジュアルに交流するカフェ会です"},
-  {n:"田村夫妻・歓迎会", start:"2026-08-23T09:00:00Z", end:"2026-08-23T11:00:00Z", cat:"自支部／青年", target:"希望者（講）", place:"金沢会館"},
-  {n:"班長会合●", start:"2026-08-24T10:30:00Z", end:"2026-08-24T12:30:00Z", cat:"自支部／青年", target:"班長以上", place:"金沢会館", staff:"松本光志先生", live:true},
-  {n:"ひまわりデー", start:"2026-08-26", allDay:true, cat:"共通", target:"学徒全員"},
-  {n:"教学試験★", start:"2026-08-28T01:00:00Z", end:"2026-08-28T03:00:00Z", cat:"共通", target:"学徒全員", place:"金沢会館", staff:"榎並麗子さん", desc:"21日までに受験お布施を納めて申し込み"},
-  {n:"青年合宿★", start:"2026-08-29T03:00:00Z", end:"2026-08-30T03:00:00Z", cat:"自支部／青年", target:"学徒全員", place:"京都 宇多野ユースホステル", staff:"新谷泰規先生", desc:"時間・場所の詳細は個別に伝達"},
-  {n:"金沢花びら行進デー◎", start:"2026-08-30", allDay:true, cat:"共通", target:"縁正含む"},
-  {n:"教学コンテスト", start:"2026-08-30T11:00:00Z", end:"2026-08-30T11:45:00Z", cat:"共通", target:"学徒全員", place:"配信", live:true},
-  {n:"二千畳ご講演", start:"2026-09-06T00:30:00Z", end:"2026-09-06T07:00:00Z", cat:"ご講演", target:"学徒全員", place:"親鸞会館", desc:"『なぜ生きる』１００万部突破・ご発刊２５周年ご講演"},
-  {n:"オンライン仏法讃嘆", start:"2026-09-06T11:00:00Z", end:"2026-09-06T11:50:00Z", cat:"共通", target:"学徒全員", place:"Zoom", staff:"松本光志先生", live:true},
-  {n:"歎異抄大学（東京報恩講）◎", start:"2026-09-13T01:00:00Z", end:"2026-09-13T07:45:00Z", cat:"共通", target:"縁正含む", place:"東京ビッグサイト", live:true},
-  {n:"北陸報恩講", start:"2026-09-27T00:30:00Z", end:"2026-09-27T07:00:00Z", cat:"ご講演", target:"学徒全員", place:"親鸞会館", desc:"『なぜ生きる』１００万部突破・ご発刊２５周年ご講演"},
-  {n:"オンライン仏法讃嘆", start:"2026-09-27T11:00:00Z", end:"2026-09-27T11:50:00Z", cat:"共通", target:"学徒全員", place:"Zoom", staff:"松本光志先生", live:true},
-  {n:"先生と学徒との対話", start:"2026-09-30T04:30:00Z", end:"2026-09-30T05:30:00Z", cat:"ご講演", target:"学徒全員"},
+const EVENTS = [{"i": 0, "t": "紫雲閣 遷仏会", "s": "2026-08-01", "e": "2026-08-01", "st": "13:30", "et": "15:30", "c": "共通", "g": "学徒全員", "p": "紫雲閣", "pd": "", "ha": [], "stt": false, "u": "", "d": ""}, {"i": 2, "t": "オンライン仏法讃嘆", "s": "2026-08-02", "e": "2026-08-02", "st": "20:00", "et": "20:50", "c": "共通", "g": "学徒全員", "p": "Zoom", "pd": "", "ha": ["松本光志先生"], "stt": true, "u": "https://us02web.zoom.us/j/84231023434?pwd=Nm9DTVBuNmIvamNUcllUWVZGaFZ2UT09", "d": ""}, {"i": 1, "t": "親鸞学徒追悼法要", "s": "2026-08-02", "e": "2026-08-02", "st": "9:30", "et": "16:00", "c": "ご講演", "g": "学徒全員", "p": "親鸞会館", "pd": "", "ha": [], "stt": false, "u": "", "d": "『なぜ生きる』１００万部突破・ご発刊２５周年ご講演"}, {"i": 3, "t": "親鸞学徒セミナー◎", "s": "2026-08-06", "e": "2026-08-06", "st": "14:00", "et": "16:00", "c": "共通", "g": "学徒全員", "p": "福井会館", "pd": "", "ha": ["福井県支部長"], "stt": false, "u": "", "d": "各会館で聞かせていただけます"}, {"i": 4, "t": "【オンラインサロン】「変われない」私が変わる、たった一つの方法とは～AIに聞いても分からない問に対するブッダの答え", "s": "2026-08-06", "e": "2026-08-06", "st": "21:00", "et": "21:45", "c": "自支部／青年", "g": "縁正含む", "p": "オンライン", "pd": "", "ha": ["高松良行先生"], "stt": true, "u": "https://www.kokuchpro.com/event/dde6478a6c764fa7c494d6a7c6a9b673/", "d": "「頭ではわかっているけれど、行動に移せない」「結局、明日も同じ日常を繰り返している」そんなあなたへ"}, {"i": 5, "t": "【かほく】カジュアルに語る～哲学トーク交流会inカフェ", "s": "2026-08-07", "e": "2026-08-07", "st": "19:00", "et": "20:00", "c": "自支部／青年", "g": "縁正含む", "p": "ミスタードーナツ イオンモールかほくショップ", "pd": "", "ha": [], "stt": false, "u": "https://www.kokuchpro.com/event/318a5ba188433dbec7ef3c18f6f893f4/", "d": "一杯のコーヒーと、こころを整える哲学対話。ちょっと贅沢な大人の交流会です"}, {"i": 6, "t": "教学顕正会合★", "s": "2026-08-07", "e": "2026-08-07", "st": "19:30", "et": "21:30", "c": "自支部／青年", "g": "学徒全員", "p": "金沢会館", "pd": "", "ha": ["落合孝臣先生"], "stt": true, "u": "", "d": ""}, {"i": 7, "t": "ベル・クルール異業種交流会", "s": "2026-08-08", "e": "2026-08-08", "st": "14:00", "et": "15:30", "c": "自支部／青年", "g": "縁正含む", "p": "金沢Rise", "pd": "", "ha": [], "stt": false, "u": "https://www.kokuchpro.com/event/3bf353431f32d9362d1ddec51524e0fd/", "d": "普段の仕事や生活の中ではなかなか出会わない人たちと、気軽につながれる交流会です。"}, {"i": 8, "t": "家族友人顕正[プラスわん]会合", "s": "2026-08-08", "e": "2026-08-08", "st": "21:00", "et": "22:00", "c": "自支部／青年", "g": "希望者（講）", "p": "オンライン", "pd": "", "ha": [], "stt": true, "u": "https://meet.google.com/fdo-hzag-bjo", "d": ""}, {"i": 9, "t": "親鸞学徒追悼法要", "s": "2026-08-09", "e": "2026-08-09", "st": "10:00", "et": "12:00", "c": "共通", "g": "学徒全員", "p": "金沢会館", "pd": "", "ha": ["宮本順子先生"], "stt": false, "u": "", "d": ""}, {"i": 10, "t": "親鸞学徒追悼法要", "s": "2026-08-09", "e": "2026-08-09", "st": "13:30", "et": "15:30", "c": "共通", "g": "学徒全員", "p": "金沢会館", "pd": "", "ha": ["柴加純先生"], "stt": false, "u": "", "d": ""}, {"i": 11, "t": "青年学徒会合★", "s": "2026-08-11", "e": "2026-08-11", "st": "10:00", "et": "12:00", "c": "自支部／青年", "g": "学徒全員", "p": "金沢会館", "pd": "", "ha": ["新谷泰規先生"], "stt": true, "u": "", "d": "朝10時お勤め"}, {"i": 12, "t": "本音を飲み込んでしまうあなたへ ～優しすぎる心を守るブッダの知恵～", "s": "2026-08-11", "e": "2026-08-11", "st": "14:00", "et": "15:30", "c": "自支部／青年", "g": "縁正含む", "p": "メープルハウス本店", "pd": "", "ha": ["新谷泰規先生"], "stt": false, "u": "https://www.kokuchpro.com/event/0373557581d7e1b0cfb2a8cb01104b2c/", "d": "予備知識ゼロでも大丈夫!仏教の基礎からやさしく学びます"}, {"i": 13, "t": "【かほく】カジュアルに語る～哲学トーク交流会inカフェ", "s": "2026-08-12", "e": "2026-08-12", "st": "19:00", "et": "20:00", "c": "自支部／青年", "g": "縁正含む", "p": "ミスタードーナツ イオンモールかほくショップ", "pd": "", "ha": [], "stt": false, "u": "https://www.kokuchpro.com/event/318a5ba188433dbec7ef3c18f6f893f4/", "d": "一杯のコーヒーと、こころを整える哲学対話。ちょっと贅沢な大人の交流会です"}, {"i": 14, "t": "親鸞学徒セミナー★", "s": "2026-08-13", "e": "2026-08-13", "st": "19:30", "et": "21:30", "c": "共通", "g": "学徒全員", "p": "金沢会館", "pd": "", "ha": ["石川県支部長"], "stt": false, "u": "", "d": ""}, {"i": 15, "t": "OBAネット講師合宿", "s": "2026-08-14", "e": "2026-08-15", "st": null, "et": null, "c": "自支部／青年", "g": "希望者（講）", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": ""}, {"i": 16, "t": "【女性限定カフェ】前向きな気持ちになれる活動「陽活(ポジ活)」一緒にやりませんか?", "s": "2026-08-15", "e": "2026-08-15", "st": "11:10", "et": "12:10", "c": "自支部／青年", "g": "縁正含む", "p": "ウッドスタイルカフェ", "pd": "", "ha": [], "stt": false, "u": "https://www.kokuchpro.com/event/b04a7d6a746e2f797bbc3b0c38cdc058/", "d": "カフェで「陽活(ポジ活)」しませんか?女性限定のカフェ会です"}, {"i": 18, "t": "オンライン仏法讃嘆", "s": "2026-08-16", "e": "2026-08-16", "st": "20:00", "et": "20:50", "c": "共通", "g": "学徒全員", "p": "Zoom", "pd": "", "ha": ["松本光志先生"], "stt": true, "u": "https://us02web.zoom.us/j/84231023434?pwd=Nm9DTVBuNmIvamNUcllUWVZGaFZ2UT09", "d": ""}, {"i": 17, "t": "高森先生のご恩を偲ぶ法要★", "s": "2026-08-16", "e": "2026-08-16", "st": "9:30", "et": "16:00", "c": "ご講演", "g": "学徒全員", "p": "親鸞会館", "pd": "", "ha": [], "stt": false, "u": "", "d": "参加対象は親鸞学徒限定\n配信はありません"}, {"i": 19, "t": "青年チラシコンテスト", "s": "2026-08-17", "e": "2026-08-30", "st": null, "et": null, "c": "自支部／青年", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "8/17〜8/30の2週間。個人総合枚数・地区合計枚数・個人1日最高枚数の3部門で競う。集計方法は本会より追って連絡。"}, {"i": 20, "t": "ビデオ教学座談会★", "s": "2026-08-17", "e": "2026-08-17", "st": "10:00", "et": "12:15", "c": "共通", "g": "学徒全員", "p": "金沢会館", "pd": "", "ha": ["榎並麗子さん"], "stt": false, "u": "", "d": "高森先生の座談会です。配信はありません"}, {"i": 21, "t": "青年学徒会合★", "s": "2026-08-17", "e": "2026-08-17", "st": "19:30", "et": "21:30", "c": "自支部／青年", "g": "学徒全員", "p": "平手努様宅", "pd": "", "ha": ["新谷泰規先生"], "stt": true, "u": "", "d": "19:30から勤行"}, {"i": 22, "t": "東京八王子会館落慶式", "s": "2026-08-19", "e": "2026-08-19", "st": "12:00", "et": "14:30", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": ""}, {"i": 23, "t": "先生と学徒との対話", "s": "2026-08-19", "e": "2026-08-19", "st": "13:30", "et": "14:30", "c": "ご講演", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": ""}, {"i": 24, "t": "先生と学徒との対話", "s": "2026-08-19", "e": "2026-08-19", "st": "20:00", "et": "21:00", "c": "ご講演", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": ""}, {"i": 25, "t": "青年会合★", "s": "2026-08-20", "e": "2026-08-20", "st": "20:00", "et": "21:00", "c": "自支部／青年", "g": "学徒全員", "p": "Zoom", "pd": "", "ha": ["高松良行先生"], "stt": true, "u": "", "d": ""}, {"i": 26, "t": "【仕事終わり、ちょっと一息】グルメ漫画について語る、大人の交流会", "s": "2026-08-21", "e": "2026-08-21", "st": "19:00", "et": "20:00", "c": "自支部／青年", "g": "縁正含む", "p": "ミスタードーナツ イオンモールかほくショップ", "pd": "", "ha": [], "stt": false, "u": "https://www.kokuchpro.com/event/efd2fe7b04132f0330180f26332f0e76/", "d": "カフェで交流会しています♪今回はマンガファン主催、グルメ漫画について語る交流会です"}, {"i": 27, "t": "【オンラインサロン】 有っても無くても同じってホント!?幸せの本質を知ると生き方が変わる☆彡", "s": "2026-08-21", "e": "2026-08-21", "st": "21:00", "et": "21:45", "c": "自支部／青年", "g": "縁正含む", "p": "オンライン", "pd": "", "ha": ["中村真與先生"], "stt": false, "u": "https://www.kokuchpro.com/event/17f8672f4a2db86f7798d35d8e449b12/", "d": "様々な悩み、孤独、むなしさを解消し、心から充実した人生にするにはどうしたらよいのか、ブッダが教えた解決法を聞いていませんか☆"}, {"i": 28, "t": "【夏の特別イベント】大人も自由研究!いっしょに楽しくお酒の勉強しませんか?「酒蔵見学&交流会 in 金沢」", "s": "2026-08-22", "e": "2026-08-22", "st": "13:20", "et": "16:00", "c": "自支部／青年", "g": "縁正含む", "p": "やちや酒造", "pd": "", "ha": [], "stt": false, "u": "https://www.kokuchpro.com/event/20fb7584235d63e7a22526ccfaa7f0d8/", "d": "大人になった今だからこそ、もっと深く、もっと楽しく。特別な夏を過ごしましょう"}, {"i": 29, "t": "青年花びら行進デー", "s": "2026-08-23", "e": "2026-08-23", "st": null, "et": null, "c": "自支部／青年", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "青年チラシコンテスト（8/17〜8/30）期間内の青年一斉チラシ配布デー。配布枚数はコンテスト集計の対象。"}, {"i": 30, "t": "金沢・ゆる哲カフェ交流会 〜「このままでいいのかな…」夏にこそ考えたい、自分の”生きる意味”", "s": "2026-08-23", "e": "2026-08-23", "st": "14:00", "et": "15:00", "c": "自支部／青年", "g": "縁正含む", "p": "菓ふぇMURAKAMIクロスゲート金沢店", "pd": "金沢駅前", "ha": [], "stt": false, "u": "https://www.kokuchpro.com/event/43f1e752197199c655875248dc1f9e82/", "d": "お茶をしながらゆっくりお話ししませんか? 哲学的なテーマからカジュアルに交流するカフェ会です"}, {"i": 31, "t": "田村夫妻・歓迎会", "s": "2026-08-23", "e": "2026-08-23", "st": "18:00", "et": "20:00", "c": "自支部／青年", "g": "希望者（講）", "p": "平手努様宅", "pd": "", "ha": [], "stt": false, "u": "", "d": ""}, {"i": 32, "t": "班長会合●", "s": "2026-08-24", "e": "2026-08-24", "st": "19:30", "et": "21:30", "c": "自支部／青年", "g": "班長以上", "p": "金沢会館", "pd": "", "ha": ["松本光志先生"], "stt": true, "u": "", "d": ""}, {"i": 33, "t": "ひまわりデー", "s": "2026-08-26", "e": "2026-08-26", "st": null, "et": null, "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": ""}, {"i": 34, "t": "一度きりの夏、後悔しない人生を選ぶなら ～ブッダが教える「命の尊さ」と人生を豊かにする答え", "s": "2026-08-26", "e": "2026-08-26", "st": "19:00", "et": "20:00", "c": "自支部／青年", "g": "縁正含む", "p": "ミスタードーナツ イオンモールかほくショップ", "pd": "", "ha": [], "stt": false, "u": "https://www.kokuchpro.com/event/f0418b19c4ab8b28553e1417057e5a26/", "d": "心のモヤモヤを、「ブッダの教え」をヒントにそっと紐解いてみましょう。知識ゼロでも優しくお話しします"}, {"i": 35, "t": "教学試験★", "s": "2026-08-28", "e": "2026-08-28", "st": "10:00", "et": "12:00", "c": "共通", "g": "学徒全員", "p": "金沢会館", "pd": "", "ha": ["榎並麗子さん"], "stt": false, "u": "", "d": "21日までに受験お布施を納めて申し込み"}, {"i": 36, "t": "青年合宿★", "s": "2026-08-29", "e": "2026-08-30", "st": "12:00", "et": "12:00", "c": "自支部／青年", "g": "学徒全員", "p": "京都 宇多野ユースホステル", "pd": "", "ha": ["新谷泰規先生"], "stt": false, "u": "", "d": "時間・場所の詳細は個別に伝えます"}, {"i": 37, "t": "【カフェ開催】心のモヤモヤ、ここでリリース～大学では教えてくれない 「生き方の哲学」", "s": "2026-08-29", "e": "2026-08-29", "st": "14:00", "et": "15:00", "c": "自支部／青年", "g": "縁正含む", "p": "メープルハウス本店", "pd": "", "ha": [], "stt": false, "u": "https://www.kokuchpro.com/event/e6b7082c60112c913767ac26389aa825/", "d": "自分の心を整理し、自分らしく歩き出すためのヒントを見つけるカフェ会です"}, {"i": 38, "t": "金沢花びら行進デー◎", "s": "2026-08-30", "e": "2026-08-30", "st": null, "et": null, "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": ""}, {"i": 39, "t": "【金沢開催】カフェで学べるアドラー心理学～他人の人生を生きるのは、もう終わり。 振り回されずに生きるブッダとアドラーの言葉", "s": "2026-08-30", "e": "2026-08-30", "st": "10:00", "et": "11:00", "c": "自支部／青年", "g": "縁正含む", "p": "星乃珈琲店 金沢押野店", "pd": "", "ha": [], "stt": false, "u": "https://www.kokuchpro.com/event/ba37f9a56e79c5de3d39c6a6b52cebf0/", "d": "アドラー心理学とブッダの言葉から、モヤモヤを解消して、自分らしく生きるヒントをお話しします"}, {"i": 40, "t": "ビデオ教学座談会", "s": "2026-08-30", "e": "2026-08-30", "st": "13:30", "et": "15:30", "c": "自支部／青年", "g": "希望者（講）", "p": "金沢会館", "pd": "", "ha": ["渡辺翼さん"], "stt": false, "u": "", "d": "高森先生の座談会です（お勤めなし・配信なし）"}, {"i": 41, "t": "教学コンテスト", "s": "2026-08-30", "e": "2026-08-30", "st": "20:00", "et": "20:45", "c": "共通", "g": "学徒全員", "p": "配信", "pd": "https://online.japan-buddhism.com/kyougaku-2/", "ha": [], "stt": true, "u": "", "d": ""}, {"i": 42, "t": "【カフェ開催】心穏やかに過ごしたいあなたへ～イライラ、ムカムカを解消するブッダのアドバイス", "s": "2026-09-04", "e": "2026-09-04", "st": "19:30", "et": "20:30", "c": "自支部／青年", "g": "縁正含む", "p": "メープルハウス本店", "pd": "1階個室", "ha": [], "stt": false, "u": "https://www.kokuchpro.com/event/f38cb9ea8398a8c6317f7b49e0ed4ac6/", "d": "「なぜイライラが生まれるのか」 そのメカニズムとその対処法を学びます"}, {"i": 44, "t": "利他が変える、あなたの明日 〜「人のために動く」ことで心が軽くなり、人生が好転する法則", "s": "2026-09-05", "e": "2026-09-05", "st": "14:00", "et": "15:30", "c": "自支部／青年", "g": "縁正含む", "p": "近江町交流プラザ・研修室2", "pd": "", "ha": [], "stt": false, "u": "https://www.kokuchpro.com/event/5a4de2c0219194e2c81d3a8018de66a8/", "d": "毎日の仕事や家庭で今日からすぐに実践できる「人生が好転する法則」を学びます"}, {"i": 43, "t": "勉強会★", "s": "2026-09-05", "e": "2026-09-05", "st": "14:00", "et": "15:30", "c": "共通", "g": "学徒全員", "p": "金沢会館", "pd": "", "ha": ["渡部隆志先生"], "stt": true, "u": "", "d": ""}, {"i": 45, "t": "金沢会館大掃除★", "s": "2026-09-05", "e": "2026-09-05", "st": "15:45", "et": "17:15", "c": "共通", "g": "学徒全員", "p": "金沢会館", "pd": "", "ha": ["宿野栄一さん"], "stt": false, "u": "", "d": ""}, {"i": 46, "t": "【かほくカフェ】私の運命はどうやって決まるの?〜人生を紐解くブッダの教え", "s": "2026-09-05", "e": "2026-09-05", "st": "19:00", "et": "20:00", "c": "自支部／青年", "g": "縁正含む", "p": "ミスタードーナツ イオンモールかほくショップ", "pd": "", "ha": [], "stt": false, "u": "https://www.kokuchpro.com/event/774d81d5b4072f619188c864e0ea18b6/", "d": "「自分の人生を変えたい」というあなたへ、ブッダの教えた運命の仕組みについて分かりやすくお話しします"}, {"i": 48, "t": "オンライン仏法讃嘆", "s": "2026-09-06", "e": "2026-09-06", "st": "20:00", "et": "20:50", "c": "共通", "g": "学徒全員", "p": "Zoom", "pd": "", "ha": ["松本光志先生"], "stt": true, "u": "https://us02web.zoom.us/j/84231023434?pwd=Nm9DTVBuNmIvamNUcllUWVZGaFZ2UT09", "d": ""}, {"i": 47, "t": "二千畳ご講演", "s": "2026-09-06", "e": "2026-09-06", "st": "9:30", "et": "16:00", "c": "ご講演", "g": "学徒全員", "p": "親鸞会館", "pd": "", "ha": [], "stt": false, "u": "", "d": "『なぜ生きる』１００万部突破・ご発刊２５周年ご講演"}, {"i": 49, "t": "ビデオ教学座談会★", "s": "2026-09-07", "e": "2026-09-07", "st": "10:00", "et": "12:15", "c": "共通", "g": "学徒全員", "p": "金沢会館", "pd": "", "ha": ["榎並麗子さん"], "stt": false, "u": "", "d": "高森先生の座談会を聞かせていただくご縁です"}, {"i": 50, "t": "カジュアルに語る～哲学トーク交流会inカフェ", "s": "2026-09-09", "e": "2026-09-09", "st": "19:00", "et": "20:00", "c": "自支部／青年", "g": "縁正含む", "p": "かほくイオン内ミスタードーナツ", "pd": "", "ha": [], "stt": false, "u": "https://www.kokuchpro.com/event/2f18c6fc4edc6ffe108c510b0a0a3555/", "d": "一杯のコーヒーと、こころを整える哲学対話。ちょっと贅沢な大人の交流会です"}, {"i": 51, "t": "【オンラインサロン】私の運命はどうやって決まるの?〜人生を紐解くブッタの教え", "s": "2026-09-10", "e": "2026-09-10", "st": "21:00", "et": "21:45", "c": "自支部／青年", "g": "縁正含む", "p": "オンライン", "pd": "", "ha": ["高松良行先生"], "stt": false, "u": "https://www.kokuchpro.com/event/0c6116da915226f8f03ffdeebd60004d/", "d": "「自分の運命を変えたい」というあなたへ、ブッダの教えた運命の仕組みについて分かりやすくお話しします"}, {"i": 52, "t": "歎異抄大学 前日準備", "s": "2026-09-12", "e": "2026-09-12", "st": "13:00", "et": "19:00", "c": "共通", "g": "学徒全員", "p": "東京ビッグサイト", "pd": "", "ha": [], "stt": false, "u": "", "d": "歎異抄大学（東京報恩講）の前日準備"}, {"i": 54, "t": "歎異抄大学 片付け", "s": "2026-09-13", "e": "2026-09-13", "st": "17:00", "et": "19:00", "c": "共通", "g": "学徒全員", "p": "東京ビッグサイト", "pd": "", "ha": [], "stt": false, "u": "", "d": "歎異抄大学（東京報恩講）の前日準備"}, {"i": 53, "t": "歎異抄大学（東京報恩講）", "s": "2026-09-13", "e": "2026-09-13", "st": "9:30", "et": "17:00", "c": "共通", "g": "縁正含む", "p": "東京ビッグサイト", "pd": "", "ha": [], "stt": true, "u": "", "d": ""}, {"i": 55, "t": "ひまわりデー", "s": "2026-09-14", "e": "2026-09-14", "st": null, "et": null, "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": ""}, {"i": 57, "t": "旭川会館落慶式★", "s": "2026-09-17", "e": "2026-09-17", "st": "11:00", "et": "13:30", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "金沢会館で同時上映"}, {"i": 56, "t": "【女性限定カフェ】前向きな気持ちになれる活動「陽活(ポジ活)」一緒にやりませんか?", "s": "2026-09-17", "e": "2026-09-17", "st": "9:20", "et": "10:40", "c": "自支部／青年", "g": "縁正含む", "p": "ウッドスタイルカフェ", "pd": "", "ha": [], "stt": false, "u": "https://www.kokuchpro.com/event/00ade942f2de847dd2b1f868b5dfd04b/", "d": "カフェで「陽活(ポジ活)」しませんか?女性限定のカフェ会です"}, {"i": 58, "t": "親鸞学徒セミナー★", "s": "2026-09-19", "e": "2026-09-19", "st": "13:00", "et": "15:00", "c": "共通", "g": "学徒全員", "p": "石川かほく会館", "pd": "", "ha": ["石川県支部長"], "stt": false, "u": "", "d": ""}, {"i": 59, "t": "九州遠征ツアー", "s": "2026-09-20", "e": "2026-09-23", "st": null, "et": null, "c": "自支部／青年", "g": "希望者（講）", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": ""}, {"i": 60, "t": "金沢・ゆる哲カフェ交流会 〜このイライラはどこから来るの?怒りの心と対処法", "s": "2026-09-20", "e": "2026-09-20", "st": "14:00", "et": "15:00", "c": "自支部／青年", "g": "縁正含む", "p": "菓ふぇMURAKAMIクロスゲート金沢店", "pd": "金沢駅前", "ha": [], "stt": false, "u": "https://www.kokuchpro.com/event/0308f0d263db05b509f6b7c627f7a158/", "d": "【初めてさん歓迎】お茶をしながらゆっくりお話ししませんか? 哲学的なテーマからカジュアルに交流するカフェ会です"}, {"i": 61, "t": "【オンラインサロン】孤独感はどこから来るの?分かり合えない寂しさを解消するブッダの教え", "s": "2026-09-22", "e": "2026-09-22", "st": "21:00", "et": "21:45", "c": "自支部／青年", "g": "縁正含む", "p": "オンライン", "pd": "", "ha": ["長縄翔平先生"], "stt": false, "u": "https://www.kokuchpro.com/event/b1d308c558a3201391df171dc119d531/", "d": "モヤモヤした気持ちからいつまでも抜け出せないそんな自分の気持ちを受け入れ、前に向かって進むためにはどうしたらいいのか学べます"}, {"i": 62, "t": "金沢花びら行進デー★", "s": "2026-09-23", "e": "2026-09-23", "st": null, "et": null, "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": ""}, {"i": 63, "t": "青年学徒会合★", "s": "2026-09-23", "e": "2026-09-23", "st": "10:00", "et": "12:00", "c": "自支部／青年", "g": "学徒全員", "p": "金沢会館", "pd": "", "ha": ["新谷泰規先生"], "stt": true, "u": "", "d": "朝10時お勤め"}, {"i": 64, "t": "教学試験★", "s": "2026-09-23", "e": "2026-09-23", "st": "13:30", "et": "15:30", "c": "共通", "g": "学徒全員", "p": "金沢会館", "pd": "", "ha": ["榎並麗子さん"], "stt": false, "u": "", "d": "１６日までに受験お布施を納めて申し込み"}, {"i": 65, "t": "青年勉強会", "s": "2026-09-23", "e": "2026-09-23", "st": "14:00", "et": "15:30", "c": "自支部／青年", "g": "縁正含む", "p": "メープルハウス", "pd": "", "ha": ["新谷泰規先生"], "stt": false, "u": "", "d": ""}, {"i": 66, "t": "一度きり後悔しない人生を選ぶなら ～ブッダが教える「命の尊さ」と人生を豊かにする答え", "s": "2026-09-23", "e": "2026-09-23", "st": "19:00", "et": "20:00", "c": "自支部／青年", "g": "縁正含む", "p": "ミスタードーナツかほくイオンショップ", "pd": "", "ha": [], "stt": false, "u": "https://www.kokuchpro.com/event/3f5c9c7b5b3eb94c8145fbcd293504dd/", "d": "心のモヤモヤを、「ブッダの教え」をヒントにそっと紐解いてみましょう。知識ゼロでも優しくお話しします"}, {"i": 67, "t": "親鸞学徒セミナー★", "s": "2026-09-24", "e": "2026-09-24", "st": "19:30", "et": "21:30", "c": "共通", "g": "学徒全員", "p": "越前鯖江会館", "pd": "", "ha": ["福井県支部長"], "stt": false, "u": "", "d": ""}, {"i": 68, "t": "青年会合★", "s": "2026-09-24", "e": "2026-09-24", "st": "20:00", "et": "21:00", "c": "自支部／青年", "g": "学徒全員", "p": "Zoom", "pd": "", "ha": ["高松良行先生"], "stt": true, "u": "", "d": ""}, {"i": 69, "t": "青年会合★", "s": "2026-09-25", "e": "2026-09-25", "st": "19:30", "et": "21:30", "c": "自支部／青年", "g": "学徒全員", "p": "平手努様宅", "pd": "", "ha": ["松本光志先生"], "stt": true, "u": "", "d": "青年会合。19:30から勤行"}, {"i": 70, "t": "青年勉強会", "s": "2026-09-26", "e": "2026-09-26", "st": "10:30", "et": "12:00", "c": "自支部／青年", "g": "縁正含む", "p": "メープルハウス", "pd": "", "ha": ["新谷泰規先生"], "stt": false, "u": "", "d": ""}, {"i": 71, "t": "講師長座談会", "s": "2026-09-26", "e": "2026-09-26", "st": "17:00", "et": "18:30", "c": "自支部／青年", "g": "学徒全員", "p": "", "pd": "", "ha": ["青年部地区長"], "stt": false, "u": "", "d": ""}, {"i": 72, "t": "輝きセミナー（全国ネット顕正セミナー）", "s": "2026-09-26", "e": "2026-09-26", "st": "19:00", "et": "20:00", "c": "共通", "g": "学徒全員", "p": "Zoom", "pd": "", "ha": [], "stt": true, "u": "https://us02web.zoom.us/j/84122149305?pwd=SG01dm9lcnJYVFJWMnR2QktEeXk2UT09", "d": ""}, {"i": 74, "t": "オンライン仏法讃嘆", "s": "2026-09-27", "e": "2026-09-27", "st": "20:00", "et": "20:50", "c": "共通", "g": "学徒全員", "p": "Zoom", "pd": "", "ha": ["松本光志先生"], "stt": true, "u": "https://us02web.zoom.us/j/84231023434?pwd=Nm9DTVBuNmIvamNUcllUWVZGaFZ2UT09", "d": ""}, {"i": 73, "t": "北陸報恩講", "s": "2026-09-27", "e": "2026-09-27", "st": "9:30", "et": "16:00", "c": "ご講演", "g": "学徒全員", "p": "親鸞会館", "pd": "", "ha": [], "stt": false, "u": "", "d": "『なぜ生きる』１００万部突破・ご発刊２５周年ご講演"}, {"i": 75, "t": "先生と学徒との対話", "s": "2026-09-30", "e": "2026-09-30", "st": "13:30", "et": "14:30", "c": "ご講演", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": ""}, {"i": 76, "t": "先生と学徒との対話", "s": "2026-09-30", "e": "2026-09-30", "st": "20:00", "et": "21:00", "c": "ご講演", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": ""}, {"i": 78, "t": "オンライン仏法讃嘆", "s": "2026-10-04", "e": "2026-10-04", "st": "20:00", "et": "20:50", "c": "共通", "g": "学徒全員", "p": "Zoom", "pd": "", "ha": ["松本光志先生"], "stt": true, "u": "https://us02web.zoom.us/j/84231023434?pwd=Nm9DTVBuNmIvamNUcllUWVZGaFZ2UT09", "d": ""}, {"i": 77, "t": "二千畳Ｑ＆Ａ", "s": "2026-10-04", "e": "2026-10-04", "st": "9:30", "et": "16:00", "c": "ご講演", "g": "学徒全員", "p": "親鸞会館", "pd": "", "ha": [], "stt": false, "u": "", "d": ""}, {"i": 79, "t": "先生と学徒との対話", "s": "2026-10-14", "e": "2026-10-14", "st": "13:30", "et": "14:30", "c": "ご講演", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": ""}, {"i": 85, "t": "アニメをひらくに学ぶ（秋の集い）", "s": "2026-10-23", "e": "2026-10-23", "st": "13:30", "et": "15:30", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 83, "t": "シネマ学院『親鸞 人生の目的』\n英語字幕（秋の集い）", "s": "2026-10-23", "e": "2026-10-23", "st": "13:30", "et": "15:15", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 84, "t": "二千畳拝観ツアー（秋の集い）", "s": "2026-10-23", "e": "2026-10-23", "st": "13:30", "et": "15:30", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 86, "t": "仏法讃嘆（秋の集い）", "s": "2026-10-23", "e": "2026-10-23", "st": "13:30", "et": "15:30", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 87, "t": "アニメをひらくに学ぶ（秋の集い）", "s": "2026-10-23", "e": "2026-10-23", "st": "16:30", "et": "18:00", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 88, "t": "仏法讃嘆（秋の集い）", "s": "2026-10-23", "e": "2026-10-23", "st": "16:30", "et": "18:00", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 89, "t": "仏法讃嘆（秋の集い）", "s": "2026-10-23", "e": "2026-10-23", "st": "19:00", "et": "20:30", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 81, "t": "アニメをひらくに学ぶ（秋の集い）", "s": "2026-10-23", "e": "2026-10-23", "st": "9:30", "et": "11:30", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 80, "t": "シネマ学院『親鸞 人生の目的』\nポルトガル語字幕（秋の集い）", "s": "2026-10-23", "e": "2026-10-23", "st": "9:30", "et": "11:15", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 82, "t": "仏法讃嘆（秋の集い）", "s": "2026-10-23", "e": "2026-10-23", "st": "9:30", "et": "11:30", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 91, "t": "オンライン仏法讃嘆", "s": "2026-10-24", "e": "2026-10-24", "st": "20:00", "et": "20:50", "c": "共通", "g": "学徒全員", "p": "Zoom", "pd": "", "ha": ["松本光志先生"], "stt": true, "u": "https://us02web.zoom.us/j/84231023434?pwd=Nm9DTVBuNmIvamNUcllUWVZGaFZ2UT09", "d": ""}, {"i": 90, "t": "親鸞聖人報恩講１日目", "s": "2026-10-24", "e": "2026-10-24", "st": "9:30", "et": "16:00", "c": "ご講演", "g": "学徒全員", "p": "親鸞会館", "pd": "", "ha": [], "stt": false, "u": "", "d": ""}, {"i": 93, "t": "シネマ学院『親鸞 人生の目的』\n簡体字字幕（秋の集い）", "s": "2026-10-25", "e": "2026-10-25", "st": "17:30", "et": "19:15", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 94, "t": "オンライン仏法讃嘆", "s": "2026-10-25", "e": "2026-10-25", "st": "20:00", "et": "20:50", "c": "共通", "g": "学徒全員", "p": "Zoom", "pd": "", "ha": ["松本光志先生"], "stt": true, "u": "https://us02web.zoom.us/j/84231023434?pwd=Nm9DTVBuNmIvamNUcllUWVZGaFZ2UT09", "d": ""}, {"i": 92, "t": "親鸞聖人報恩講２日目", "s": "2026-10-25", "e": "2026-10-25", "st": "9:30", "et": "16:00", "c": "ご講演", "g": "学徒全員", "p": "親鸞会館", "pd": "", "ha": [], "stt": false, "u": "", "d": ""}, {"i": 95, "t": "二千畳学徒セミナー （秋の集い）", "s": "2026-10-26", "e": "2026-10-26", "st": "10:00", "et": "11:40", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": true, "u": "", "d": "2026 秋の集い"}, {"i": 98, "t": "アニメをひらくに学ぶ（秋の集い）", "s": "2026-10-26", "e": "2026-10-26", "st": "13:30", "et": "15:30", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 96, "t": "シネマ学院『関東の親鸞』（秋の集い）", "s": "2026-10-26", "e": "2026-10-26", "st": "13:30", "et": "15:15", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 97, "t": "世界の学徒紹介（秋の集い）", "s": "2026-10-26", "e": "2026-10-26", "st": "13:30", "et": "15:00", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": true, "u": "", "d": "2026 秋の集い"}, {"i": 99, "t": "仏法讃嘆（秋の集い）", "s": "2026-10-26", "e": "2026-10-26", "st": "13:30", "et": "15:00", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 100, "t": "アニメをひらくに学ぶ（秋の集い）", "s": "2026-10-26", "e": "2026-10-26", "st": "16:30", "et": "18:00", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 101, "t": "仏法讃嘆（秋の集い）", "s": "2026-10-26", "e": "2026-10-26", "st": "16:30", "et": "18:00", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 102, "t": "シネマ学院『親鸞 人生の目的』\n英語字幕（秋の集い）", "s": "2026-10-26", "e": "2026-10-26", "st": "19:30", "et": "21:15", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 103, "t": "仏法讃嘆（秋の集い）", "s": "2026-10-26", "e": "2026-10-26", "st": "19:30", "et": "21:00", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 107, "t": "氷見会館の集い（秋の集い）", "s": "2026-10-27", "e": "2026-10-27", "st": "10:00", "et": "11:15", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 109, "t": "アニメをひらくに学ぶ（秋の集い）", "s": "2026-10-27", "e": "2026-10-27", "st": "13:30", "et": "15:30", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 108, "t": "シネマ学院『親鸞 人生の目的』（秋の集い）", "s": "2026-10-27", "e": "2026-10-27", "st": "13:30", "et": "15:15", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 110, "t": "仏法讃嘆（秋の集い）", "s": "2026-10-27", "e": "2026-10-27", "st": "13:30", "et": "15:30", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 112, "t": "アニメをひらくに学ぶ（秋の集い）", "s": "2026-10-27", "e": "2026-10-27", "st": "16:30", "et": "18:00", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 111, "t": "シネマ学院『親鸞聖人 第１巻』（秋の集い）", "s": "2026-10-27", "e": "2026-10-27", "st": "16:30", "et": "17:40", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 113, "t": "仏法讃嘆（秋の集い）", "s": "2026-10-27", "e": "2026-10-27", "st": "16:30", "et": "18:00", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 114, "t": "高岡会館学徒セミナー（秋の集い）", "s": "2026-10-27", "e": "2026-10-27", "st": "19:20", "et": "21:30", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": true, "u": "https://www.gkt.jp/#/boards/bulletins/17182", "d": "2026 秋の集い"}, {"i": 105, "t": "アニメをひらくに学ぶ（秋の集い）", "s": "2026-10-27", "e": "2026-10-27", "st": "9:30", "et": "11:30", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 104, "t": "シネマ学院『京都の親鸞』（秋の集い）", "s": "2026-10-27", "e": "2026-10-27", "st": "9:30", "et": "11:10", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 106, "t": "仏法讃嘆（秋の集い）", "s": "2026-10-27", "e": "2026-10-27", "st": "9:30", "et": "11:30", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 118, "t": "南砺会館の集い（秋の集い）", "s": "2026-10-28", "e": "2026-10-28", "st": "10:00", "et": "11:30", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 122, "t": "アニメをひらくに学ぶ（秋の集い）", "s": "2026-10-28", "e": "2026-10-28", "st": "13:30", "et": "15:30", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 120, "t": "シネマ学院『親鸞聖人 完結編』（秋の集い）", "s": "2026-10-28", "e": "2026-10-28", "st": "13:30", "et": "15:15", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 123, "t": "仏法讃嘆（秋の集い）", "s": "2026-10-28", "e": "2026-10-28", "st": "13:30", "et": "15:30", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 119, "t": "百味館アニメをひらくに学ぶ（秋の集い）", "s": "2026-10-28", "e": "2026-10-28", "st": "13:30", "et": "15:30", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 121, "t": "紫雲閣でのご著書『顕正』の集い（秋の集い）", "s": "2026-10-28", "e": "2026-10-28", "st": "13:30", "et": "15:30", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 124, "t": "フィナーレ（秋の集い）", "s": "2026-10-28", "e": "2026-10-28", "st": "15:45", "et": "16:00", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 126, "t": "アニメをひらくに学ぶ（秋の集い）", "s": "2026-10-28", "e": "2026-10-28", "st": "16:30", "et": "18:00", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 125, "t": "シネマ学院『親鸞聖人 第２巻』（秋の集い）", "s": "2026-10-28", "e": "2026-10-28", "st": "16:30", "et": "17:50", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 127, "t": "仏法讃嘆（秋の集い）", "s": "2026-10-28", "e": "2026-10-28", "st": "16:30", "et": "18:00", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 128, "t": "シネマ学院『親鸞 人生の目的\nポルトガル語字幕（秋の集い）", "s": "2026-10-28", "e": "2026-10-28", "st": "19:30", "et": "21:15", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 129, "t": "仏法讃嘆（秋の集い）", "s": "2026-10-28", "e": "2026-10-28", "st": "19:30", "et": "21:00", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 116, "t": "アニメをひらくに学ぶ（秋の集い）", "s": "2026-10-28", "e": "2026-10-28", "st": "9:30", "et": "11:30", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 115, "t": "シネマ学院『歎異抄をひらく』（秋の集い）", "s": "2026-10-28", "e": "2026-10-28", "st": "9:30", "et": "11:10", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 117, "t": "仏法讃嘆（秋の集い）", "s": "2026-10-28", "e": "2026-10-28", "st": "9:30", "et": "11:30", "c": "共通", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": "2026 秋の集い"}, {"i": 131, "t": "オンライン仏法讃嘆", "s": "2026-11-08", "e": "2026-11-08", "st": "20:00", "et": "20:50", "c": "共通", "g": "学徒全員", "p": "Zoom", "pd": "", "ha": ["松本光志先生"], "stt": true, "u": "https://us02web.zoom.us/j/84231023434?pwd=Nm9DTVBuNmIvamNUcllUWVZGaFZ2UT09", "d": ""}, {"i": 130, "t": "二千畳ご講演", "s": "2026-11-08", "e": "2026-11-08", "st": "9:30", "et": "16:00", "c": "ご講演", "g": "学徒全員", "p": "親鸞会館", "pd": "", "ha": [], "stt": false, "u": "", "d": "『なぜ生きる』１００万部突破・ご発刊２５周年ご講演"}, {"i": 133, "t": "オンライン仏法讃嘆", "s": "2026-11-22", "e": "2026-11-22", "st": "20:00", "et": "20:50", "c": "共通", "g": "学徒全員", "p": "Zoom", "pd": "", "ha": ["松本光志先生"], "stt": true, "u": "https://us02web.zoom.us/j/84231023434?pwd=Nm9DTVBuNmIvamNUcllUWVZGaFZ2UT09", "d": ""}, {"i": 132, "t": "二千畳Ｑ＆Ａ", "s": "2026-11-22", "e": "2026-11-22", "st": "9:30", "et": "16:00", "c": "ご講演", "g": "学徒全員", "p": "親鸞会館", "pd": "", "ha": [], "stt": false, "u": "", "d": ""}, {"i": 134, "t": "先生と学徒との対話", "s": "2026-11-25", "e": "2026-11-25", "st": "13:30", "et": "14:30", "c": "ご講演", "g": "学徒全員", "p": "", "pd": "", "ha": [], "stt": false, "u": "", "d": ""}];
+const CUR_MONTH = "2026-09"; // 生成時に固定（8月末に9月分をアナウンス）
+const CATS = [
+  {name:"ご講演",   c:"#E56458", bg:"#FCE9E7"},
+  {name:"自支部／青年", c:"#2783DE", bg:"#E5F2FC"},
+  {name:"共通",     c:"#46A171", bg:"#E8F1EC"},
+  {name:"他支部",   c:"#8A8781", bg:"#F0EFED"},
 ];
+const TGTS = [
+  {name:"副地区長以上", c:"#8E6BC0"},
+  {name:"会計以上",   c:"#46A171"},
+  {name:"大班長以上",  c:"#8E6BC0"},
+  {name:"班長以上",   c:"#2783DE"},
+  {name:"学徒全員",   c:"#8A8781"},
+  {name:"縁正含む",   c:"#E56458"},
+  {name:"希望者（講）", c:"#C08A1F"},
+];
+const HAISHIN_WORD = /(オンライン|Zoom|zoom|配信|LINE|ＬＩＮＥ)/;
+const WK = ["月","火","水","木","金","土","日"];
+const offCats = new Set(), offTgts = new Set();
+let curMonth = CUR_MONTH;
 
-const WD = ["日","月","火","水","木","金","土"];
-const jstFmt = new Intl.DateTimeFormat("ja-JP",{timeZone:"Asia/Tokyo",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false,weekday:"short"});
-
-function jstParts(iso){
-  const p = jstFmt.formatToParts(new Date(iso));
-  const o = {};
-  for(const x of p){ o[x.type]=x.value; }
-  return o; // year, month, day, hour, minute
+const esc = s => String(s??"").replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const catOf = n => CATS.find(c=>c.name===n) || {name:n,c:"#8A8781",bg:"#F0EFED"};
+const tgtOf = n => TGTS.find(t=>t.name===n) || {name:n,c:"#8A8781"};
+const dObj = s => { const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); };
+const iso = dt => `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}`;
+const spanDays = e => Math.round((dObj(e.e)-dObj(e.s))/86400000)+1;
+const isPeriod = e => spanDays(e)>=3;
+function placeInfo(e){
+  let p = e.p || "";
+  if(e.stt && p && !HAISHIN_WORD.test(p)) p += "（配信）";
+  if(!p && e.stt) p = "配信";
+  const icon = (e.stt || HAISHIN_WORD.test(p)) ? "📡" : "🏫";
+  return {p, icon};
 }
+function mdLabel(s){ const [,m,d]=s.split("-"); return `${Number(m)}/${Number(d)}`; }
+function wkLabel(s){ return WK[(dObj(s).getDay()+6)%7]; }
+const tkey = e => e.st ? parseInt(e.st.split(":")[0])*60 + parseInt(e.st.split(":")[1]) : -1;
+const byTime = (a,b) => tkey(a)-tkey(b) || a.t.localeCompare(b.t);
+function visible(e){ return !offCats.has(e.c) && !(e.g && offTgts.has(e.g)); }
 
-// enrich events with jst date key + time text
-const SPANS = [];
-(function(){
-  const out = [];
-  const addDays = (key,n)=>{ const p=key.split("-"); return new Date(Date.UTC(+p[0],+p[1]-1,+p[2]+n)).toISOString().slice(0,10); };
-  EVENTS.forEach(e=>{
-    let sKey, eKey, sTime="", eTime="", sortH=0;
-    if(e.allDay){
-      sKey = e.start.slice(0,10);
-      eKey = (e.end||e.start).slice(0,10);
-    } else {
-      const s = jstParts(e.start);
-      sKey = s.year+"-"+s.month+"-"+s.day;
-      sTime = (+s.hour)+":"+s.minute;
-      sortH = parseInt(s.hour)*60+parseInt(s.minute);
-      if(e.end){ const en = jstParts(e.end); eKey = en.year+"-"+en.month+"-"+en.day; eTime = (+en.hour)+":"+en.minute; }
-      else { eKey = sKey; }
-    }
-    if(eKey <= sKey){
-      const c = Object.assign({}, e);
-      c.key = sKey;
-      c.timeText = e.allDay ? "終日" : (sTime + (eTime ? "〜"+eTime : ""));
-      c.sortH = sortH;
-      out.push(c);
-      return;
-    }
-    const total = Math.round((Date.parse(eKey)-Date.parse(sKey))/86400000)+1;
-    if(total >= 3){
-      const a = Object.assign({}, e);
-      a.key = sKey; a.sortH = sortH; a.spanText = total+"日間";
-      a.timeText = sTime ? "開始 "+sTime+"〜" : "開始";
-      a.n = e.n + "（開始）";
-      a.spanOnly = true;
-      out.push(a);
-      const z = Object.assign({}, e);
-      z.key = eKey; z.sortH = 0; z.spanText = total+"日間";
-      z.timeText = eTime ? "締切 〜"+eTime : "締切";
-      z.n = e.n + "（締切）";
-      z.spanOnly = true;
-      out.push(z);
-      SPANS.push({n:e.n, cat:e.cat, target:e.target, sKey:sKey, eKey:eKey, total:total, ev:a});
-      return;
-    }
-    let k = sKey, i = 0;
-    while(k <= eKey){
-      const c = Object.assign({}, e);
-      const label = (i===0) ? "初日" : ((k===eKey) ? "最終日" : (i+1)+"日目");
-      let tt;
-      if(i===0){ tt = sTime ? label+" "+sTime+"〜" : label; }
-      else if(k===eKey){ tt = eTime ? label+" 〜"+eTime : label; }
-      else { tt = label; }
-      c.key = k;
-      c.timeText = tt;
-      c.sortH = (i===0) ? sortH : 0;
-      c.n = e.n + "（" + label + "）";
-      c.spanText = total + "日間";
-      out.push(c);
-      k = addDays(k,1); i++;
-    }
+/* ---- legend ---- */
+function renderLegend(){
+  const L = document.getElementById("legend");
+  L.innerHTML = "";
+  const r1 = document.createElement("div"); r1.className="legrow";
+  r1.innerHTML = '<span class="leglabel">分類</span>';
+  CATS.forEach(c=>{
+    const b=document.createElement("span");
+    b.className="chip cat"+(offCats.has(c.name)?" off":"");
+    b.style.background=c.bg; b.style.color=c.c; b.style.borderColor=c.c;
+    b.innerHTML=`<span class="dot" style="background:${c.c}"></span>${esc(c.name)}`;
+    b.onclick=()=>{ offCats.has(c.name)?offCats.delete(c.name):offCats.add(c.name); renderAll(); };
+    r1.appendChild(b);
   });
-  EVENTS.length = 0;
-  out.forEach(x=>EVENTS.push(x));
-})();
-
-const MONTHS = [
-  {y:2026, m:7, label:"7月"},
-  {y:2026, m:8, label:"8月"},
-  {y:2026, m:9, label:"9月"}
-];
-let curMonth = 1; /* default month index (fixed at generation time) */
-const disabledCat = new Set(); const disabledTarget = new Set();
-const todayKey = (()=>{ const t=jstParts(new Date().toISOString()); return t.year+"-"+t.month+"-"+t.day; })();
-
-function evVisible(e){ return !disabledCat.has(e.cat) && !disabledTarget.has(e.target); }
-function keyFor(y,m,d){ return y+"-"+String(m).padStart(2,"0")+"-"+String(d).padStart(2,"0"); }
-function eventsOn(key){
-  return EVENTS.filter(e=>e.key===key && evVisible(e))
-    .sort((a,b)=>{ if(a.allDay&&!b.allDay)return -1; if(!a.allDay&&b.allDay)return 1; return (a.sortH||0)-(b.sortH||0); });
+  const r2 = document.createElement("div"); r2.className="legrow";
+  r2.innerHTML = '<span class="leglabel">対象</span>';
+  TGTS.filter(t=>EVENTS.some(e=>e.g===t.name)).forEach(t=>{
+    const b=document.createElement("span");
+    b.className="chip tgt"+(offTgts.has(t.name)?" off":"");
+    b.style.borderColor=t.c; b.style.color=t.c;
+    b.textContent=t.name;
+    b.onclick=()=>{ offTgts.has(t.name)?offTgts.delete(t.name):offTgts.add(t.name); renderAll(); };
+    r2.appendChild(b);
+  });
+  L.appendChild(r1); L.appendChild(r2);
 }
 
-function renderMonthsNav(){
-  const c = document.getElementById("months"); c.innerHTML="";
-  MONTHS.forEach((mo,i)=>{
+/* ---- month tabs ---- */
+const MONTHS = [...new Set(EVENTS.map(e=>e.s.slice(0,7)))].sort();
+function renderTabs(){
+  const T=document.getElementById("mtabs"); T.innerHTML="";
+  MONTHS.forEach(m=>{
     const b=document.createElement("button");
-    b.textContent=mo.label; if(i===curMonth)b.className="active";
-    b.onclick=()=>{curMonth=i; renderAll();};
-    c.appendChild(b);
+    b.className="mtab"+(m===curMonth?" active":"");
+    const yy=m.slice(0,4); b.textContent = yy==="2026" ? `${Number(m.slice(5))}月` : `${yy.slice(2)}年${Number(m.slice(5))}月`;
+    b.onclick=()=>{ curMonth=m; renderAll(); };
+    T.appendChild(b);
+  });
+}
+function shiftMonth(d){
+  const i=MONTHS.indexOf(curMonth)+d;
+  if(i>=0 && i<MONTHS.length){ curMonth=MONTHS[i]; renderAll(); }
+}
+document.getElementById("prevM").onclick=()=>shiftMonth(-1);
+document.getElementById("nextM").onclick=()=>shiftMonth(1);
+
+/* ---- cards ---- */
+function cardHTML(e, label, timestr){
+  const c=catOf(e.c), koen=e.c==="ご講演";
+  const {p,icon}=placeInfo(e);
+  const t = timestr ? `<span class="tm">${esc(timestr)}</span>` : "";
+  const loc = p ? `<span class="lc">${icon}${esc(p)}${e.pd?"　"+esc(e.pd):""}</span>` : (e.pd?`<span class="lc">${esc(e.pd)}</span>`:"");
+  return `<div class="ev${koen?" koen":""}" data-i="${e.i}" style="background:${c.bg};border-color:${c.c};color:${c.c}">${t}<span class="nm">${esc(label||e.t)}</span>${loc}</div>`;
+}
+function labelFor(e, day){
+  const span=spanDays(e);
+  if(span<=1) return {label:e.t, time:e.st?`${e.st}〜${e.et||""}`.replace(/〜$/,""):null};
+  if(span===2){
+    if(day===e.s) return {label:e.t+"（初日）", time:e.st?`${e.st}〜`:null};
+    if(day===e.e) return {label:e.t+"（最終日）", time:e.et?`〜${e.et}`:null};
+  }
+  return null;
+}
+
+/* ---- calendar ---- */
+const TODAY = "2026-08-29";
+function renderCal(){
+  const G=document.getElementById("grid"); G.innerHTML="";
+  const D=document.getElementById("dowrow");
+  if(!D.children.length) WK.forEach((w,i)=>{ const x=document.createElement("div"); x.className="dow"+(i===6?" sun":""); x.textContent=w; D.appendChild(x); });
+  const [y,m]=curMonth.split("-").map(Number);
+  const first=new Date(y,m-1,1), last=new Date(y,m,0);
+  const lead=(first.getDay()+6)%7;
+  const cells=[];
+  for(let i=0;i<lead;i++){ const d=new Date(first); d.setDate(d.getDate()-(lead-i)); cells.push({d,dim:true}); }
+  for(let d=1; d<=last.getDate(); d++) cells.push({d:new Date(y,m-1,d),dim:false});
+  while(cells.length%7!==0){ const d=new Date(cells[cells.length-1].d); d.setDate(d.getDate()+1); cells.push({d,dim:true}); }
+  const byDay={};
+  cells.forEach(c=>{ byDay[iso(c.d)]=[]; });
+  EVENTS.forEach(e=>{ if(!visible(e)) return;
+    if(isPeriod(e)) return;
+    if(spanDays(e)===2){
+      [e.s,e.e].forEach(day=>{ if(byDay[day]) byDay[day].push(e); });
+    } else if(byDay[e.s]) byDay[e.s].push(e);
+  });
+  cells.forEach(c=>{
+    const key=iso(c.d);
+    const cell=document.createElement("div");
+    cell.className="cell"+(c.dim?" dim":"")+(key===TODAY?" today":"");
+    cell.innerHTML=`<div class="dnum">${c.dim?(c.d.getMonth()+1)+"/":""}${c.d.getDate()}</div>`;
+    /* period bars */
+    EVENTS.filter(e=>isPeriod(e)&&visible(e)&&e.s<=key&&key<=e.e).forEach(e=>{
+      const cc=catOf(e.c);
+      const bar=document.createElement("div");
+      bar.className="bar"+(e.s===key?" bstart":"")+(e.e===key?" bend":"");
+      bar.style.background=cc.c; bar.dataset.i=e.i;
+      cell.appendChild(bar);
+      if(e.s===key || c.d.getDay()===1){
+        const nm=document.createElement("div");
+        nm.className="barname"; nm.style.color=cc.c; nm.dataset.i=e.i;
+        nm.textContent=`${e.t}（${mdLabel(e.s)}〜${mdLabel(e.e)}）`;
+        cell.appendChild(nm);
+      }
+    });
+    byDay[key].sort(byTime).forEach(e=>{
+      const lf=labelFor(e,key)||{label:e.t,time:e.st};
+      const div=document.createElement("div");
+      div.innerHTML=cardHTML(e,lf.label,lf.time);
+      cell.appendChild(div.firstChild);
+    });
+    G.appendChild(cell);
   });
 }
 
-function renderCalendar(){
-  const {y,m} = MONTHS[curMonth];
-  const grid = document.getElementById("grid"); grid.innerHTML="";
-  const first = new Date(Date.UTC(y,m-1,1));
-  const startDow = (first.getUTCDay()+6)%7;
-  const daysInMonth = new Date(Date.UTC(y,m,0)).getUTCDate();
-  for(let i=0;i<startDow;i++){ const c=document.createElement("div"); c.className="cell pad"; grid.appendChild(c);}  
-  for(let d=1; d<=daysInMonth; d++){
-    const key = keyFor(y,m,d);
-    const dow = new Date(Date.UTC(y,m-1,d)).getUTCDay();
-    const cell=document.createElement("div"); cell.className="cell";
-    if(dow===0)cell.classList.add("sun"); if(dow===6)cell.classList.add("sat");
-    if(key===todayKey)cell.classList.add("today");
-    const dn=document.createElement("div"); dn.className="dnum"; dn.textContent=d; cell.appendChild(dn);
-    spansOn(key).forEach(s=>{
-      const sl=document.createElement("button"); sl.className="spanline "+catCls(s);
-      if(key===s.sKey) sl.classList.add("is-start");
-      if(key===s.eKey) sl.classList.add("is-end");
-      const showLabel = (key===s.sKey) || (dow===1);
-      sl.innerHTML = showLabel ? esc(s.n) : "&nbsp;";
-      sl.title = s.n+"（"+mdShort(s.sKey)+"〜"+mdShort(s.eKey)+"）";
-      sl.onclick=()=>openModal(s.ev);
-      cell.appendChild(sl);
-    });
-    eventsOn(key).filter(e=>!e.spanOnly).forEach(e=>{
-      const b=document.createElement("button"); b.className="ev "+catCls(e)+(e.cat==="ご講演"?" lecture":"");
-      let h="";
-      h+="<span class='et'>"+esc(e.timeText||"終日")+"</span>";
-      h+="<span class='en'>"+esc(e.n)+"</span>";
-      { const pd=placeDisp(e); if(pd){ h+="<span class='ep'>"+placeIcon(e)+" "+esc(pd)+"</span>"; } }
-      h+=tagHtml(e);
-      b.innerHTML=h;
-      b.onclick=()=>openModal(e); cell.appendChild(b);
-    });
-    grid.appendChild(cell);
-  }
-  const total = startDow+daysInMonth; const rem=(7-(total%7))%7;
-  for(let i=0;i<rem;i++){ const c=document.createElement("div"); c.className="cell pad"; grid.appendChild(c);}  
-}
-
+/* ---- list ---- */
 function renderList(){
-  const {y,m}=MONTHS[curMonth];
-  const lv=document.getElementById("listview"); lv.innerHTML="";
-  const daysInMonth=new Date(Date.UTC(y,m,0)).getUTCDate();
-  let any=false; const groups=[];
-  for(let d=1; d<=daysInMonth; d++){
-    const key=keyFor(y,m,d); const evs=eventsOn(key);
-    if(!evs.length)continue; any=true;
-    const dow=new Date(Date.UTC(y,m-1,d)).getUTCDay();
-    const g=document.createElement("div"); g.className="day-group"; groups.push({key:key, el:g});
-    const h=document.createElement("div"); h.className="day-head";
-    h.innerHTML="<span>"+m+"/"+d+"</span><span class='wd'>("+WD[dow]+")</span>";
-    g.appendChild(h);
-    evs.forEach(e=>{
-      const li=document.createElement("div"); li.className="li"+(e.cat==="ご講演"?" lecture":""); li.onclick=()=>openModal(e);
-      const pd=placeDisp(e); const pm=pd?"<div class='meta'>"+placeIcon(e)+" "+esc(pd)+"</div>":"";
-      li.innerHTML="<div class='bar "+catCls(e)+"'></div><div class='time'>"+esc(e.timeText)+"</div><div style='flex:1'><div class='nm'>"+esc(e.n)+"</div>"+pm+tagHtml(e)+"</div>";
-      g.appendChild(li);
+  const L=document.getElementById("listView"); L.innerHTML="";
+  const [y,m]=curMonth.split("-").map(Number);
+  const last=new Date(y,m,0).getDate();
+  const todayKey=TODAY;
+  for(let d=1; d<=last; d++){
+    const key=iso(new Date(y,m-1,d));
+    const evs=EVENTS.filter(e=>visible(e)&&!isPeriod(e)&&(spanDays(e)===2?(e.s===key||e.e===key):e.s===key))
+      .sort(byTime);
+    const pers=EVENTS.filter(e=>isPeriod(e)&&visible(e)&&e.s<=key&&key<=e.e);
+    if(!evs.length && !pers.length) continue;
+    const blk=document.createElement("div"); blk.className="dayblock";
+    pers.forEach(e=>{
+      const cc=catOf(e.c);
+      const st = (todayKey>=e.s && todayKey<=e.e) ? "開催中" : "開催予定";
+      const pb=document.createElement("div");
+      pb.className="pbar"; pb.style.background=cc.bg; pb.style.color=cc.c; pb.dataset.i=e.i;
+      pb.innerHTML=`<span class="vlabel">${st}</span><span class="vname">${esc(e.t)} ${mdLabel(e.s)}〜${mdLabel(e.e)}</span>`;
+      blk.appendChild(pb);
     });
-    lv.appendChild(g);
+    const w=wkLabel(key), sun=dObj(key).getDay()===0;
+    const body=document.createElement("div");
+    blk.insertAdjacentHTML("beforeend",
+      `<div class="dhead"><div class="md">${m}/${d}</div><div class="wk${sun?" sun":""}">${w}</div></div>`);
+    body.className="dbody";
+    evs.forEach(e=>{
+      const lf=labelFor(e,key)||{label:e.t,time:e.st};
+      const c=catOf(e.c), koen=e.c==="ご講演";
+      const {p,icon}=placeInfo(e);
+      const g=e.g?`<span class="tagchip" style="color:${tgtOf(e.g).c};border-color:${tgtOf(e.g).c}">${esc(e.g)}</span>`:"";
+      const div=document.createElement("div");
+      div.className="lev"+(koen?" koen":"");
+      div.style.background=c.bg; div.style.borderColor=c.c; div.style.color=c.c;
+      div.dataset.i=e.i;
+      div.innerHTML=`${lf.time?`<span class="tm">${esc(lf.time)}</span>`:""}<span class="nm">${esc(lf.label)}</span>`+
+        `<div class="meta">${g}${p?` ${icon}${esc(p)}${e.pd?"　"+esc(e.pd):""}`:(e.pd?esc(e.pd):"")}</div>`;
+      body.appendChild(div);
+    });
+    if(!evs.length) body.innerHTML='<div class="noev">行事カードなし（期間行事のみ）</div>';
+    blk.appendChild(body);
+    L.appendChild(blk);
   }
-  SPANS.filter(s=>evVisible(s)).forEach(s=>{
-    const inRange = groups.filter(g=>g.key>=s.sKey && g.key<=s.eKey);
-    if(!inRange.length) return;
-    const wrap=document.createElement("div"); wrap.className="spanwrap";
-    lv.insertBefore(wrap, inRange[0].el);
-    const live = (todayKey>=s.sKey && todayKey<=s.eKey);
-    const vb=document.createElement("div"); vb.className="vbar "+catCls(s);
-    vb.innerHTML="<span>"+(live?"開催中":"開催予定")+" "+esc(s.n)+"（"+mdShort(s.sKey)+"〜"+mdShort(s.eKey)+"）</span>";
-    vb.onclick=()=>openModal(s.ev);
-    wrap.appendChild(vb);
-    inRange.forEach(g=>wrap.appendChild(g.el));
-  });
-  if(!any){ lv.innerHTML="<div class='empty'>表示できる行事がありません</div>"; }
+  if(!L.children.length) L.innerHTML='<div class="noev">この月の行事はありません</div>';
 }
 
-function openModal(e){
-  const cm=CATMAP[e.cat]||{cls:"gray",label:e.cat};
-  let rows="";
-  rows+="<div class='row'><div class='k'>日時</div><div class='v'>"+esc(monthDayText(e))+"　"+esc(e.timeText)+"</div></div>";
-  { const pd=placeDisp(e); if(pd){ rows+="<div class='row'><div class='k'>場所</div><div class='v'>"+placeIcon(e)+" "+esc(pd)+(e.placeDetail?"（"+esc(e.placeDetail)+"）":"")+"</div></div>"; } }
-  if(e.staff){ rows+="<div class='row'><div class='k'>担当</div><div class='v'>"+esc(e.staff)+"</div></div>"; }
-  rows+="<div class='row'><div class='k'>対象</div><div class='v'><span class='tag "+((TARGETMAP[e.target]||{cls:'gray'}).cls)+"'>"+esc(e.target)+"</span></div></div>";
-  if(e.url){ rows+="<div class='row'><div class='k'>URL</div><div class='v'><a href='"+e.url+"' target='_blank' rel='noopener'>"+esc(e.url)+"</a></div></div>"; }
-  if(e.desc){ rows+="<div class='row'><div class='k'>説明</div><div class='v'>"+esc(e.desc)+"</div></div>"; }
-  const mo=document.getElementById("modal");
-  mo.innerHTML="<div class='mh'><span class='cat "+cm.cls+"'>"+cm.label+"</span><button class='close' onclick='closeModal()'>✕</button><h2>"+esc(e.n)+"</h2></div><div class='rows'>"+rows+"</div>";
-  document.getElementById("overlay").classList.add("on");
+/* ---- modal ---- */
+const OV=document.getElementById("overlay"), MD=document.getElementById("modal");
+function openModal(idx){
+  const e=EVENTS.find(x=>x.i===idx); if(!e) return;
+  const c=catOf(e.c), {p,icon}=placeInfo(e);
+  const span=spanDays(e);
+  let when;
+  if(span===1) when=`${mdLabel(e.s)}（${wkLabel(e.s)}）`+(e.st?` ${e.st}〜${e.et||""}`.replace(/〜$/,""):"");
+  else when=`${mdLabel(e.s)}（${wkLabel(e.s)}）〜${mdLabel(e.e)}（${wkLabel(e.e)}）`+
+    (e.st?`　${e.s===e.e?"":"初日 "+e.st+"〜"}`:"")+(e.et?` 最終日 〜${e.et}`:"");
+  MD.innerHTML=`<h2>${esc(e.t)}</h2>`+
+    `<div class="row"><span class="tagchip" style="background:${c.bg};color:${c.c};border-color:${c.c}">${esc(e.c)}</span>`+
+    (e.g?`<span class="tagchip" style="color:${tgtOf(e.g).c};border-color:${tgtOf(e.g).c}">${esc(e.g)}</span>`:"")+`</div>`+
+    `<div class="row"><span class="lbl">日時</span>${esc(when)}</div>`+
+    (p?`<div class="row"><span class="lbl">場所</span>${icon} ${esc(p)}${e.pd?"　"+esc(e.pd):""}</div>`:(e.pd?`<div class="row"><span class="lbl">場所</span>${esc(e.pd)}</div>`:""))+
+    (e.ha&&e.ha.length?`<div class="row"><span class="lbl">担当</span>${esc(e.ha.join("、"))}</div>`:"")+
+    (e.d?`<div class="row"><span class="lbl">説明</span>${esc(e.d).replace(/\n/g,"<br>")}</div>`:"")+
+    (e.u?`<div class="row"><span class="lbl">URL</span><a href="${esc(e.u)}" target="_blank" rel="noopener">${esc(e.u)}</a></div>`:"")+
+    `<button id="mclose">閉じる</button>`;
+  OV.classList.add("on");
+  document.getElementById("mclose").onclick=()=>OV.classList.remove("on");
 }
-function closeModal(){ document.getElementById("overlay").classList.remove("on"); }
-function monthDayText(e){ const p=e.key.split("-"); const dt=new Date(Date.UTC(+p[0],+p[1]-1,+p[2])); return (+p[1])+"月"+(+p[2])+"日("+WD[dt.getUTCDay()]+")"; }
-function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-function catCls(e){ return (CATMAP[e.cat]||{cls:"gray"}).cls; }
-function tagHtml(e){ const t=TARGETMAP[e.target]||{cls:"gray"}; return "<span class='tags'><span class='tag "+t.cls+"'>"+esc(e.target)+"</span></span>"; }
-function hasStream(p){ return /オンライン|zoom|配信|ライブ|live|youtube/i.test(p||""); }
-function placeIcon(e){ return (e.place && !hasStream(e.place)) ? "🏫" : "📡"; }
-function placeDisp(e){ if(!e.place) return e.live?"配信":""; return (e.live && !hasStream(e.place)) ? e.place+"（配信）" : e.place; }
+OV.onclick=ev=>{ if(ev.target===OV) OV.classList.remove("on"); };
+document.addEventListener("click",ev=>{
+  const t=ev.target.closest("[data-i]");
+  if(t) openModal(Number(t.dataset.i));
+});
 
-function buildLegend(containerId, order, map, disabledSet, getVal, chipClass){
-  const present = order.filter(name=>EVENTS.some(e=>getVal(e)===name));
-  const c=document.getElementById(containerId); c.innerHTML="";
-  present.forEach(name=>{
-    const m=map[name]||{cls:"gray"};
-    const el=document.createElement("div"); el.className="item"; el.title="クリックで表示/非表示";
-    el.innerHTML="<span class='"+chipClass+" "+m.cls+"'>"+esc(name)+"</span>";
-    el.onclick=()=>{ if(disabledSet.has(name)){disabledSet.delete(name); el.classList.remove("off");} else {disabledSet.add(name); el.classList.add("off");} renderAll(); };
-    c.appendChild(el);
-  });
+/* ---- orientation ---- */
+function applyOrientation(){
+  const land=window.matchMedia("(orientation: landscape)").matches;
+  document.body.classList.toggle("land",land);
 }
-buildLegend("legendCat", CAT_ORDER, CATMAP, disabledCat, e=>e.cat, "legcat");
-buildLegend("legendTarget", TARGET_ORDER, TARGETMAP, disabledTarget, e=>e.target, "tag");
-document.getElementById("overlay").onclick=(ev)=>{ if(ev.target.id==="overlay")closeModal(); };
-document.addEventListener("keydown",(ev)=>{ if(ev.key==="Escape")closeModal(); });
+window.matchMedia("(orientation: landscape)").addEventListener("change",applyOrientation);
 
-function mdShort(k){ const p=k.split("-"); return (+p[1])+"/"+(+p[2]); }
-function spansOn(key){ return SPANS.filter(s=>evVisible(s) && s.sKey<=key && key<=s.eKey); }
-function renderSpans(){
-  const c = document.getElementById("spans"); if(!c) return;
-  c.innerHTML = "";
-  const m = MONTHS[curMonth];
-  const last = new Date(Date.UTC(m.y, m.m, 0)).getUTCDate();
-  const mStart = keyFor(m.y, m.m, 1), mEnd = keyFor(m.y, m.m, last);
-  SPANS.filter(s=>evVisible(s) && s.sKey<=mEnd && s.eKey>=mStart).forEach(s=>{
-    const live = (todayKey>=s.sKey && todayKey<=s.eKey);
-    const d = document.createElement("div");
-    d.className = "spanbar "+catCls(s);
-    d.innerHTML = "<span class='sb-badge'>"+(live?"開催中":"開催予定")+"</span><span class='sb-name'>"+esc(s.n)+"</span><span class='sb-date'>"+mdShort(s.sKey)+"〜"+mdShort(s.eKey)+"（"+s.total+"日間）</span>";
-    c.appendChild(d);
-  });
-}
-function renderAll(){ renderMonthsNav(); renderSpans(); renderCalendar(); renderList(); }
-renderAll();
+function renderAll(){ renderLegend(); renderTabs(); renderCal(); renderList(); }
+applyOrientation(); renderAll();
 </script>
 </body>
 </html>
