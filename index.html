@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>青年部金沢地区の日程表</title>
+<title>&#38738;&#24180;&#37096;&#37329;&#27810;&#22320;&#21306;&#12398;&#26085;&#31243;&#34920;</title>
 <style>
 :root{
   --text:#2C2C2B; --sub:#7D7A75; --canvas:#FFFFFF; --soft:#F9F8F7; --soft2:#F0EFED; --border:#E6E5E3;
@@ -91,9 +91,9 @@ body.land #listView{display:none;}
 .foot a{color:var(--c-jishibu);}
 .upd{text-align:right; font-size:.68rem; color:#B9B6B1; margin-top:6px;}
 /* modal */
-#overlay{position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; align-items:center; justify-content:center; padding:16px; z-index:50;}
-#overlay.on{display:flex;}
-#modal{background:#fff; border-radius:12px; max-width:480px; width:100%; max-height:85vh; overflow:auto; padding:18px 20px;}
+#overlay{position:absolute; inset:0; background:rgba(0,0,0,.35); display:none; z-index:50;}
+#overlay.on{display:block;}
+#modal{position:absolute; left:50%; transform:translateX(-50%); background:#fff; border-radius:12px; max-width:480px; width:calc(100% - 32px); padding:18px 20px; box-shadow:0 10px 40px rgba(0,0,0,.3);}
 #modal h2{font-size:1.1rem; margin-bottom:8px; line-height:1.4;}
 #modal .row{font-size:.85rem; margin:5px 0;}
 #modal .lbl{color:var(--sub); font-size:.72rem; margin-right:6px;}
@@ -103,18 +103,26 @@ body.land #listView{display:none;}
 @media (max-width:520px){
   h1{font-size:1.2rem;}
   .cell{min-height:64px;}
+  /* &#12473;&#12510;&#12507;&#12391;&#12399;&#12509;&#12483;&#12503;&#12450;&#12483;&#12503;&#12434;&#24133;&#12356;&#12387;&#12401;&#12356;&#12539;&#25991;&#23383;&#12434;&#22823;&#12365;&#12367;&#12375;&#12390;&#35211;&#12420;&#12377;&#12367; */
+  #modal{max-width:none; width:calc(100% - 20px); padding:20px 18px;}
+  #modal h2{font-size:1.3rem; line-height:1.45; margin-bottom:12px;}
+  #modal .row{font-size:1.05rem; margin:9px 0; line-height:1.6;}
+  #modal .lbl{font-size:.9rem;}
+  #modal a{font-size:1.02rem;}
+  #mclose{min-height:50px; font-size:1.05rem; margin-top:18px;}
+  .tagchip{font-size:.92rem; padding:2px 10px;}
 }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>青年部金沢地区の日程表</h1>
-  <div class="note">下の「分類」「対象」のラベルをクリックすると、該当する行事の表示／非表示を切り替えられます。</div>
+  <h1>&#38738;&#24180;&#37096;&#37329;&#27810;&#22320;&#21306;&#12398;&#26085;&#31243;&#34920;</h1>
+  <div class="note">&#19979;&#12398;&#12300;&#20998;&#39006;&#12301;&#12300;&#23550;&#35937;&#12301;&#12398;&#12521;&#12505;&#12523;&#12434;&#12463;&#12522;&#12483;&#12463;&#12377;&#12427;&#12392;&#12289;&#35442;&#24403;&#12377;&#12427;&#34892;&#20107;&#12398;&#34920;&#31034;&#65295;&#38750;&#34920;&#31034;&#12434;&#20999;&#12426;&#26367;&#12360;&#12425;&#12428;&#12414;&#12377;&#12290;</div>
   <div class="legend" id="legend"></div>
   <div class="mnav">
-    <button class="nav" id="prevM" aria-label="前の月">◀</button>
+    <button class="nav" id="prevM" aria-label="&#21069;&#12398;&#26376;">&#9664;</button>
     <div class="mtabs" id="mtabs"></div>
-    <button class="nav" id="nextM" aria-label="次の月">▶</button>
+    <button class="nav" id="nextM" aria-label="&#27425;&#12398;&#26376;">&#9654;</button>
   </div>
   <div id="calView">
     <div class="dowrow" id="dowrow"></div>
@@ -122,35 +130,34 @@ body.land #listView{display:none;}
   </div>
   <div id="listView"></div>
   <div class="foot">
-    青年一般向け勉強会の詳細を知りたい方はこちらを参照してください<br>
-    <a href="https://www.kokuchpro.com/group/kanazawabuddhism/" target="_blank" rel="noopener">ベル・クルール〜Belle Couleur - こくちーず</a>
-    <div class="upd">最終更新: 2026/8/29 16:26</div>
+    &#38738;&#24180;&#19968;&#33324;&#21521;&#12369;&#21193;&#24375;&#20250;&#12398;&#35443;&#32048;&#12434;&#30693;&#12426;&#12383;&#12356;&#26041;&#12399;&#12371;&#12385;&#12425;&#12434;&#21442;&#29031;&#12375;&#12390;&#12367;&#12384;&#12373;&#12356;<br>
+    <a href="https://www.kokuchpro.com/group/kanazawabuddhism/" target="_blank" rel="noopener">&#12505;&#12523;&#12539;&#12463;&#12523;&#12540;&#12523;&#12316;Belle Couleur - &#12371;&#12367;&#12385;&#12540;&#12378;</a>
+    <div class="upd">&#26368;&#32066;&#26356;&#26032;: 2026/9/26 21:20</div>
   </div>
 </div>
 <div id="overlay"><div id="modal"></div></div>
-<script src="events1.js"></script>
-<script src="events2.js"></script>
-<script src="events3.js"></script>
+<script src="events.js"></script>
 <script>
-const EVENTS = EV_DATA;
-const CUR_MONTH = "2026-09"; // 生成時に固定（8月末に9月分をアナウンス）
+let EVENTS=[];
+async function __boot(){var bin=Uint8Array.from(atob(EVENTS_PACKED),function(c){return c.charCodeAt(0)});var ab=await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();EVENTS=JSON.parse(new TextDecoder().decode(ab));applyOrientation();renderAll();}
+const CUR_MONTH = "2026-10"; // \u751f\u6210\u6642\u306b\u56fa\u5b9a\uff089\u6708\u672b\u306b10\u6708\u5206\u3092\u30a2\u30ca\u30a6\u30f3\u30b9\uff09
 const CATS = [
-  {name:"ご講演",   c:"#E56458", bg:"#FCE9E7"},
-  {name:"自支部／青年", c:"#2783DE", bg:"#E5F2FC"},
-  {name:"共通",     c:"#46A171", bg:"#E8F1EC"},
-  {name:"他支部",   c:"#8A8781", bg:"#F0EFED"},
+  {name:"\u3054\u8b1b\u6f14",   c:"#E56458", bg:"#FCE9E7"},
+  {name:"\u81ea\u652f\u90e8\uff0f\u9752\u5e74", c:"#2783DE", bg:"#E5F2FC"},
+  {name:"\u5171\u901a",     c:"#46A171", bg:"#E8F1EC"},
+  {name:"\u4ed6\u652f\u90e8",   c:"#8A8781", bg:"#F0EFED"},
 ];
 const TGTS = [
-  {name:"副地区長以上", c:"#8E6BC0"},
-  {name:"会計以上",   c:"#46A171"},
-  {name:"大班長以上",  c:"#8E6BC0"},
-  {name:"班長以上",   c:"#2783DE"},
-  {name:"学徒全員",   c:"#8A8781"},
-  {name:"縁正含む",   c:"#E56458"},
-  {name:"希望者（講）", c:"#C08A1F"},
+  {name:"\u526f\u5730\u533a\u9577\u4ee5\u4e0a", c:"#8E6BC0"},
+  {name:"\u4f1a\u8a08\u4ee5\u4e0a",   c:"#46A171"},
+  {name:"\u5927\u73ed\u9577\u4ee5\u4e0a",  c:"#8E6BC0"},
+  {name:"\u73ed\u9577\u4ee5\u4e0a",   c:"#2783DE"},
+  {name:"\u5b66\u5f92\u5168\u54e1",   c:"#8A8781"},
+  {name:"\u7e01\u6b63\u542b\u3080",   c:"#E56458"},
+  {name:"\u5e0c\u671b\u8005\uff08\u8b1b\uff09", c:"#C08A1F"},
 ];
-const HAISHIN_WORD = /(オンライン|Zoom|zoom|配信|LINE|ＬＩＮＥ)/;
-const WK = ["月","火","水","木","金","土","日"];
+const HAISHIN_WORD = /(\u30aa\u30f3\u30e9\u30a4\u30f3|Zoom|zoom|\u914d\u4fe1|LINE|\uff2c\uff29\uff2e\uff25)/;
+const WK = ["\u6708","\u706b","\u6c34","\u6728","\u91d1","\u571f","\u65e5"];
 const offCats = new Set(), offTgts = new Set();
 let curMonth = CUR_MONTH;
 
@@ -163,9 +170,9 @@ const spanDays = e => Math.round((dObj(e.e)-dObj(e.s))/86400000)+1;
 const isPeriod = e => spanDays(e)>=3;
 function placeInfo(e){
   let p = e.p || "";
-  if(e.stt && p && !HAISHIN_WORD.test(p)) p += "（配信）";
-  if(!p && e.stt) p = "配信";
-  const icon = (e.stt || HAISHIN_WORD.test(p)) ? "📡" : "🏫";
+  if(e.stt && p && !HAISHIN_WORD.test(p)) p += "\uff08\u914d\u4fe1\uff09";
+  if(!p && e.stt) p = "\u914d\u4fe1";
+  const icon = (e.stt || HAISHIN_WORD.test(p)) ? "\ud83d\udce1" : "\ud83c\udfeb";
   return {p, icon};
 }
 function mdLabel(s){ const [,m,d]=s.split("-"); return `${Number(m)}/${Number(d)}`; }
@@ -179,7 +186,7 @@ function renderLegend(){
   const L = document.getElementById("legend");
   L.innerHTML = "";
   const r1 = document.createElement("div"); r1.className="legrow";
-  r1.innerHTML = '<span class="leglabel">分類</span>';
+  r1.innerHTML = '<span class="leglabel">\u5206\u985e</span>';
   CATS.filter(c=>EVENTS.some(e=>e.c===c.name)).forEach(c=>{
     const b=document.createElement("span");
     b.className="chip cat"+(offCats.has(c.name)?" off":"");
@@ -189,7 +196,7 @@ function renderLegend(){
     r1.appendChild(b);
   });
   const r2 = document.createElement("div"); r2.className="legrow";
-  r2.innerHTML = '<span class="leglabel">対象</span>';
+  r2.innerHTML = '<span class="leglabel">\u5bfe\u8c61</span>';
   TGTS.filter(t=>EVENTS.some(e=>e.g===t.name)).forEach(t=>{
     const b=document.createElement("span");
     b.className="chip tgt"+(offTgts.has(t.name)?" off":"");
@@ -208,7 +215,7 @@ function renderTabs(){
   MONTHS.forEach(m=>{
     const b=document.createElement("button");
     b.className="mtab"+(m===curMonth?" active":"");
-    const yy=m.slice(0,4); b.textContent = yy==="2026" ? `${Number(m.slice(5))}月` : `${yy.slice(2)}年${Number(m.slice(5))}月`;
+    const yy=m.slice(0,4); b.textContent = yy==="2026" ? `${Number(m.slice(5))}\u6708` : `${yy.slice(2)}\u5e74${Number(m.slice(5))}\u6708`;
     b.onclick=()=>{ curMonth=m; renderAll(); };
     T.appendChild(b);
   });
@@ -222,25 +229,25 @@ document.getElementById("nextM").onclick=()=>shiftMonth(1);
 
 /* ---- cards ---- */
 function cardHTML(e, label, timestr){
-  const c=catOf(e.c), koen=e.c==="ご講演";
+  const c=catOf(e.c), koen=e.c==="\u3054\u8b1b\u6f14";
   const {p,icon}=placeInfo(e);
   const t = timestr ? `<span class="tm">${esc(timestr)}</span>` : "";
-  const loc = p ? `<span class="lc">${icon}${esc(p)}${e.pd?"　"+esc(e.pd):""}</span>` : (e.pd?`<span class="lc">${esc(e.pd)}</span>`:"");
-  const tg = (e.g && e.g!=="学徒全員") ? `<span class="tg" style="border-color:${tgtOf(e.g).c};color:${tgtOf(e.g).c}">${esc(e.g)}</span>` : "";
+  const loc = p ? `<span class="lc">${icon}${esc(p)}${e.pd?"\u3000"+esc(e.pd):""}</span>` : (e.pd?`<span class="lc">${esc(e.pd)}</span>`:"");
+  const tg = (e.g && e.g!=="\u5b66\u5f92\u5168\u54e1") ? `<span class="tg" style="border-color:${tgtOf(e.g).c};color:${tgtOf(e.g).c}">${esc(e.g)}</span>` : "";
   return `<div class="ev${koen?" koen":""}" data-i="${e.i}" style="background:${c.bg};border-color:${c.c};color:${c.c}">${t}<span class="nm">${esc(label||e.t)}</span>${tg}${loc}</div>`;
 }
 function labelFor(e, day){
   const span=spanDays(e);
-  if(span<=1) return {label:e.t, time:e.st?`${e.st}〜${e.et||""}`.replace(/〜$/,""):null};
+  if(span<=1) return {label:e.t, time:e.st?`${e.st}\u301c${e.et||""}`.replace(/\u301c$/,""):null};
   if(span===2){
-    if(day===e.s) return {label:e.t+"（初日）", time:e.st?`${e.st}〜`:null};
-    if(day===e.e) return {label:e.t+"（最終日）", time:e.et?`〜${e.et}`:null};
+    if(day===e.s) return {label:e.t+"\uff08\u521d\u65e5\uff09", time:e.st?`${e.st}\u301c`:null};
+    if(day===e.e) return {label:e.t+"\uff08\u6700\u7d42\u65e5\uff09", time:e.et?`\u301c${e.et}`:null};
   }
   return null;
 }
 
 /* ---- calendar ---- */
-const TODAY = "2026-08-29";
+const TODAY = "2026-09-26";
 function renderCal(){
   const G=document.getElementById("grid"); G.innerHTML="";
   const D=document.getElementById("dowrow");
@@ -275,7 +282,7 @@ function renderCal(){
       if(e.s===key || c.d.getDay()===1){
         const nm=document.createElement("div");
         nm.className="barname"; nm.style.color=cc.c; nm.dataset.i=e.i;
-        nm.textContent=`${e.t}（${mdLabel(e.s)}〜${mdLabel(e.e)}）`;
+        nm.textContent=`${e.t}\uff08${mdLabel(e.s)}\u301c${mdLabel(e.e)}\uff09`;
         cell.appendChild(nm);
       }
     });
@@ -304,10 +311,10 @@ function renderList(){
     const blk=document.createElement("div"); blk.className="dayblock";
     pers.forEach(e=>{
       const cc=catOf(e.c);
-      const st = (todayKey>=e.s && todayKey<=e.e) ? "開催中" : "開催予定";
+      const st = (todayKey>=e.s && todayKey<=e.e) ? "\u958b\u50ac\u4e2d" : "\u958b\u50ac\u4e88\u5b9a";
       const pb=document.createElement("div");
       pb.className="pbar"; pb.style.background=cc.bg; pb.style.color=cc.c; pb.dataset.i=e.i;
-      pb.innerHTML=`<span class="vlabel">${st}</span><span class="vname">${esc(e.t)} ${mdLabel(e.s)}〜${mdLabel(e.e)}</span>`;
+      pb.innerHTML=`<span class="vlabel">${st}</span><span class="vname">${esc(e.t)} ${mdLabel(e.s)}\u301c${mdLabel(e.e)}</span>`;
       blk.appendChild(pb);
     });
     const w=wkLabel(key), sun=dObj(key).getDay()===0;
@@ -317,7 +324,7 @@ function renderList(){
     body.className="dbody";
     evs.forEach(e=>{
       const lf=labelFor(e,key)||{label:e.t,time:e.st};
-      const c=catOf(e.c), koen=e.c==="ご講演";
+      const c=catOf(e.c), koen=e.c==="\u3054\u8b1b\u6f14";
       const {p,icon}=placeInfo(e);
       const g=e.g?`<span class="tagchip" style="color:${tgtOf(e.g).c};border-color:${tgtOf(e.g).c}">${esc(e.g)}</span>`:"";
       const div=document.createElement("div");
@@ -325,54 +332,65 @@ function renderList(){
       div.style.background=c.bg; div.style.borderColor=c.c; div.style.color=c.c;
       div.dataset.i=e.i;
       div.innerHTML=`${lf.time?`<span class="tm">${esc(lf.time)}</span>`:""}<span class="nm">${esc(lf.label)}</span>`+
-        `<div class="meta">${g}${p?` ${icon}${esc(p)}${e.pd?"　"+esc(e.pd):""}`:(e.pd?esc(e.pd):"")}</div>`;
+        `<div class="meta">${g}${p?` ${icon}${esc(p)}${e.pd?"\u3000"+esc(e.pd):""}`:(e.pd?esc(e.pd):"")}</div>`;
       body.appendChild(div);
     });
-    if(!evs.length) body.innerHTML='<div class="noev">行事カードなし（期間行事のみ）</div>';
+    if(!evs.length) body.innerHTML='<div class="noev">\u884c\u4e8b\u30ab\u30fc\u30c9\u306a\u3057\uff08\u671f\u9593\u884c\u4e8b\u306e\u307f\uff09</div>';
     blk.appendChild(body);
     L.appendChild(blk);
   }
-  if(!L.children.length) L.innerHTML='<div class="noev">この月の行事はありません</div>';
+  if(!L.children.length) L.innerHTML='<div class="noev">\u3053\u306e\u6708\u306e\u884c\u4e8b\u306f\u3042\u308a\u307e\u305b\u3093</div>';
 }
 
 /* ---- modal ---- */
 const OV=document.getElementById("overlay"), MD=document.getElementById("modal");
-function openModal(idx){
+function openModal(idx, anchorEl){
   const e=EVENTS.find(x=>x.i===idx); if(!e) return;
   const c=catOf(e.c), {p,icon}=placeInfo(e);
   const span=spanDays(e);
   let when;
-  if(span===1) when=`${mdLabel(e.s)}（${wkLabel(e.s)}）`+(e.st?` ${e.st}〜${e.et||""}`.replace(/〜$/,""):"");
-  else when=`${mdLabel(e.s)}（${wkLabel(e.s)}）〜${mdLabel(e.e)}（${wkLabel(e.e)}）`+
-    (e.st?`　${e.s===e.e?"":"初日 "+e.st+"〜"}`:"")+(e.et?` 最終日 〜${e.et}`:"");
+  if(span===1) when=`${mdLabel(e.s)}\uff08${wkLabel(e.s)}\uff09`+(e.st?` ${e.st}\u301c${e.et||""}`.replace(/\u301c$/,""):"");
+  else when=`${mdLabel(e.s)}\uff08${wkLabel(e.s)}\uff09\u301c${mdLabel(e.e)}\uff08${wkLabel(e.e)}\uff09`+
+    (e.st?`\u3000${e.s===e.e?"":"\u521d\u65e5 "+e.st+"\u301c"}`:"")+(e.et?` \u6700\u7d42\u65e5 \u301c${e.et}`:"");
   MD.innerHTML=`<h2>${esc(e.t)}</h2>`+
     `<div class="row"><span class="tagchip" style="background:${c.bg};color:${c.c};border-color:${c.c}">${esc(e.c)}</span>`+
     (e.g?`<span class="tagchip" style="color:${tgtOf(e.g).c};border-color:${tgtOf(e.g).c}">${esc(e.g)}</span>`:"")+`</div>`+
-    `<div class="row"><span class="lbl">日時</span>${esc(when)}</div>`+
-    (p?`<div class="row"><span class="lbl">場所</span>${icon} ${esc(p)}${e.pd?"　"+esc(e.pd):""}</div>`:(e.pd?`<div class="row"><span class="lbl">場所</span>${esc(e.pd)}</div>`:""))+
-    (e.ha&&e.ha.length?`<div class="row"><span class="lbl">担当</span>${esc(e.ha.join("、"))}</div>`:"")+
-    (e.ot?`<div class="row"><span class="lbl">正式名</span>${esc(e.ot)}</div>`:"")+
-    (e.d?`<div class="row"><span class="lbl">説明</span>${esc(e.d).replace(/\n/g,"<br>")}</div>`:"")+
+    `<div class="row"><span class="lbl">\u65e5\u6642</span>${esc(when)}</div>`+
+    (p?`<div class="row"><span class="lbl">\u5834\u6240</span>${icon} ${esc(p)}${e.pd?"\u3000"+esc(e.pd):""}</div>`:(e.pd?`<div class="row"><span class="lbl">\u5834\u6240</span>${esc(e.pd)}</div>`:""))+
+    (e.ha&&e.ha.length?`<div class="row"><span class="lbl">\u62c5\u5f53</span>${esc(e.ha.join("\u3001"))}</div>`:"")+
+    (e.ot?`<div class="row"><span class="lbl">\u6b63\u5f0f\u540d</span>${esc(e.ot)}</div>`:"")+
+    (e.d?`<div class="row"><span class="lbl">\u8aac\u660e</span>${esc(e.d).replace(/\n/g,"<br>")}</div>`:"")+
     (e.u?`<div class="row"><span class="lbl">URL</span><a href="${esc(e.u)}" target="_blank" rel="noopener">${esc(e.u)}</a></div>`:"")+
-    `<button id="mclose">閉じる</button>`;
+    `<button id="mclose">\u9589\u3058\u308b</button>`;
   OV.classList.add("on");
+  /* Notion\u57cb\u3081\u8fbc\u307f(iframe)\u3067\u306ffixed\u304c\u52b9\u304b\u306a\u3044\u305f\u3081\u3001\u30bf\u30c3\u30d7\u3057\u305f\u30ab\u30fc\u30c9\u4ed8\u8fd1\u306babsolute\u3067\u8868\u793a\u3059\u308b */
+  const sy = window.scrollY || window.pageYOffset || 0;
+  let top;
+  if(anchorEl && anchorEl.getBoundingClientRect){ top = anchorEl.getBoundingClientRect().top + sy; }
+  else { top = sy + 24; }
+  if(top < sy + 12) top = sy + 12;
+  MD.style.top = top + "px";
+  MD.scrollTop = 0;
   document.getElementById("mclose").onclick=()=>OV.classList.remove("on");
 }
 OV.onclick=ev=>{ if(ev.target===OV) OV.classList.remove("on"); };
 document.addEventListener("click",ev=>{
   const t=ev.target.closest("[data-i]");
-  if(t) openModal(Number(t.dataset.i));
+  if(t) openModal(Number(t.dataset.i), t);
 });
 
 /* ---- orientation ---- */
 function applyOrientation(){
-  const land=window.matchMedia("(orientation: landscape)").matches;
-  document.body.classList.toggle("land",land);
+  /* \u5e45\u30d9\u30fc\u30b9\u5224\u5b9a: \u72ed\u3044\u753b\u9762(\u30b9\u30de\u30db\u7e26)\u306f\u4e00\u89a7\u3001\u5e83\u3044\u753b\u9762(PC\u30fb\u30b9\u30de\u30db\u6a2a)\u306f\u30ab\u30ec\u30f3\u30c0\u30fc\u3002
+     Notion\u57cb\u3081\u8fbc\u307fiframe\u5185\u3067\u306f orientation \u30e1\u30c7\u30a3\u30a2\u30af\u30a8\u30ea\u304c\u7aef\u672b\u306e\u7e26\u6a2a\u3092\u53cd\u6620\u3057\u306a\u3044\u305f\u3081\u5e45\u3067\u5224\u5b9a\u3059\u308b\u3002 */
+  const wide=window.innerWidth>=640;
+  document.body.classList.toggle("land",wide);
 }
-window.matchMedia("(orientation: landscape)").addEventListener("change",applyOrientation);
+window.addEventListener("resize",applyOrientation);
+window.addEventListener("orientationchange",applyOrientation);
 
 function renderAll(){ renderLegend(); renderTabs(); renderCal(); renderList(); }
-applyOrientation(); renderAll();
+__boot();
 </script>
 </body>
 </html>
