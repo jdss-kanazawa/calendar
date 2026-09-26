@@ -139,7 +139,7 @@ body.land #listView{display:none;}
 <script src="events.js"></script>
 <script>
 let EVENTS=[];
-async function __boot(){var bin=Uint8Array.from(atob(EVENTS_PACKED),function(c){return c.charCodeAt(0)});var ab=await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();EVENTS=JSON.parse(new TextDecoder().decode(ab));applyOrientation();renderAll();}
+async function __boot(){var bin=Uint8Array.from(atob(EVENTS_PACKED),function(c){return c.charCodeAt(0)});var ab=await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();EVENTS=JSON.parse(new TextDecoder().decode(ab));MONTHS=[...new Set(EVENTS.map(e=>e.s.slice(0,7)))].sort();applyOrientation();renderAll();}
 const CUR_MONTH = "2026-10"; // \u751f\u6210\u6642\u306b\u56fa\u5b9a\uff089\u6708\u672b\u306b10\u6708\u5206\u3092\u30a2\u30ca\u30a6\u30f3\u30b9\uff09
 const CATS = [
   {name:"\u3054\u8b1b\u6f14",   c:"#E56458", bg:"#FCE9E7"},
@@ -209,7 +209,7 @@ function renderLegend(){
 }
 
 /* ---- month tabs ---- */
-const MONTHS = [...new Set(EVENTS.map(e=>e.s.slice(0,7)))].sort();
+let MONTHS = [];
 function renderTabs(){
   const T=document.getElementById("mtabs"); T.innerHTML="";
   MONTHS.forEach(m=>{
