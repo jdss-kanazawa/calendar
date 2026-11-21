@@ -1,0 +1,41 @@
+name: Sync Calendar from Notion
+
+on:
+  schedule:
+    # 毎時0分 (UTC) に実行 -> JSTでも毎時0分
+    - cron: '0 * * * *'
+  workflow_dispatch: # GitHubのWeb画面から手動即時実行
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run sync script
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+        run: node scripts/sync-notion.mjs
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git status --porcelain | grep -q "events.js"; then
+            git add events.js
+            git commit -m "chore(data): Notion日程表から自動同期 [skip ci]"
+            git push
+            echo "Changes committed and pushed."
+          else
+            echo "No changes in events.js. Skipping commit."
+          fi
