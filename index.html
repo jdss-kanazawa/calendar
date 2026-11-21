@@ -133,7 +133,7 @@ body.land #listView{display:none;}
   <div class="foot">
     &#38738;&#24180;&#19968;&#33324;&#21521;&#12369;&#21193;&#24375;&#20250;&#12398;&#35443;&#32048;&#12434;&#30693;&#12426;&#12383;&#12356;&#26041;&#12399;&#12371;&#12385;&#12425;&#12434;&#21442;&#29031;&#12375;&#12390;&#12367;&#12384;&#12373;&#12356;<br>
     <a href="https://www.kokuchpro.com/group/kanazawabuddhism/" target="_blank" rel="noopener">&#12505;&#12523;&#12539;&#12463;&#12523;&#12540;&#12523;&#12316;Belle Couleur - &#12371;&#12367;&#12385;&#12540;&#12378;</a>
-    <div class="upd" id="lastUpdated">&#26368;&#32066;&#26356;&#26032;: 2026/10/29 23:38</div>
+    <div class="upd" id="lastUpdated"></div>
   </div>
 </div>
 <div id="overlay"><div id="modal"></div></div>
@@ -189,7 +189,6 @@ const TGTS = [
 const HAISHIN_WORD = /(\u30aa\u30f3\u30e9\u30a4\u30f3|Zoom|zoom|\u914d\u4fe1|LINE|\uff2c\uff29\uff2e\uff25)/;
 const WK = ["\u6708","\u706b","\u6c34","\u6728","\u91d1","\u571f","\u65e5"];
 const offCats = new Set(), offTgts = new Set();
-let curMonth = CUR_MONTH;
 
 const esc = s => String(s??"").replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 const catOf = n => CATS.find(c=>c.name===n) || {name:n,c:"#8A8781",bg:"#F0EFED"};

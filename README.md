@@ -38,6 +38,6 @@ GitHubリポジトリの **Settings > Secrets and variables > Actions** に以�
 | Secret名 | 設定値 |
 | --- | --- |
 | `NOTION_API_KEY` | Notionインテグレーションのシークレットトークン（`ntn_...` または `secret_...`） |
-| `NOTION_DATABASE_ID` | 日程表のDatabase ID（例: `2074219514d48027b9e6e1b6daed35d5`） |
+| `NOTION_DATABASE_ID` | 日程表のDatabase ID（`ShibuNittei-支部日程DB` : `0a325b6d-3808-4fbe-b5c7-724a65f907a3`） |
 
 ※ GitHub Actions が変更をコミットしてプッシュできるよう、リポジトリの **Settings > Actions > General > Workflow permissions** で **「Read and write permissions」** にチェックを入れて保存してください。
