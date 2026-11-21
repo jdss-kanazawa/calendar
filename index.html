@@ -284,7 +284,8 @@ function labelFor(e, day){
 // ============================================================
 // 【カレンダー表示】横画面・PC用の月間カレンダーグリッド描画
 // ============================================================
-const TODAY = "2026-10-29";
+// 当日の日付（YYYY-MM-DD）
+const TODAY = iso(new Date());
 function renderCal(){
   const G=document.getElementById("grid"); G.innerHTML="";
   const D=document.getElementById("dowrow");
