@@ -21,14 +21,6 @@ const ALLOWED_CATS = ['自支部／青年', 'ご講演', '共通'];
 const ALLOWED_TGTS = ['班長以上', '学徒全員', '縁正含む', '希望者（講）'];
 const HAISHIN_WORD = /(オンライン|Zoom|zoom|配信|LINE|ＬＩＮＥ)/;
 
-/**
- * Unicodeエスケープ（純ASCII化で文字化けを防止）
- */
-function toUnicodeEscapedJson(obj) {
-  return JSON.stringify(obj).replace(/[\u007F-\uFFFF]/g, chr => {
-    return '\\u' + ('0000' + chr.charCodeAt(0).toString(16)).slice(-4);
-  });
-}
 
 /**
  * プロパティヘルパー
@@ -276,7 +268,7 @@ async function main() {
   console.log(`Processed ${events.length} valid events (from ${currentMonthFirstDay} onwards).`);
 
   // events.js の生成・上書き保存
-  const eventsJson = toUnicodeEscapedJson(events);
+  const eventsJson = JSON.stringify(events, null, 2);
   const jsContent = `// ==========================================
 // 青年部金沢地区の日程表 イベントデータ
 // Notionデータベースより自動生成
