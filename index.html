@@ -158,7 +158,6 @@ body.land #listView{display:none;}
  * @property {string[]} ha 担当者一覧
  * @property {string} d 説明
  * @property {string} u 関連URL
- * @property {number} [i] 描画時に使う行事番号
  */
 /**
  * @typedef {Object} CalendarData
@@ -277,6 +276,8 @@ const tkey = e => e.st ? parseInt(e.st.split(":")[0])*60 + parseInt(e.st.split("
 const byTime = (a,b) => tkey(a)-tkey(b) || a.t.localeCompare(b.t);
 /** @param {CalendarEvent} e @returns {boolean} 分類・対象フィルターを通過するかどうか */
 function visible(e){ return !offCats.has(e.c) && !(e.g && offTgts.has(e.g)); }
+/** @param {CalendarEvent} e @returns {number} EVENTS配列内の位置 */
+const eventIndex = e => EVENTS.indexOf(e);
 
 // ============================================================
 // 【凡例】画面上部の「分類」「対象」フィルタチップの描画
@@ -351,7 +352,7 @@ function cardHTML(e, label, timestr){
   const t = timestr ? `<span class="tm">${esc(timestr)}</span>` : "";
   const loc = p ? `<span class="lc">${icon}${esc(p)}${e.pd?"　"+esc(e.pd):""}</span>` : (e.pd?`<span class="lc">${esc(e.pd)}</span>`:"");
   const tg = (e.g && e.g!=="学徒全員") ? `<span class="tg" style="border-color:${tgtOf(e.g).c};color:${tgtOf(e.g).c}">${esc(e.g)}</span>` : "";
-  return `<div class="ev${koen?" koen":""}" data-i="${e.i}" style="background:${c.bg};border-color:${c.c};color:${c.c}">${t}<span class="nm">${esc(label||e.t)}</span>${tg}${loc}</div>`;
+  return `<div class="ev${koen?" koen":""}" data-event-index="${eventIndex(e)}" style="background:${c.bg};border-color:${c.c};color:${c.c}">${t}<span class="nm">${esc(label||e.t)}</span>${tg}${loc}</div>`;
 }
 /**
  * @param {CalendarEvent} e
@@ -403,11 +404,11 @@ function renderCal(){
       const cc=catOf(e.c);
       const bar=document.createElement("div");
       bar.className="bar"+(e.s===key?" bstart":"")+(e.e===key?" bend":"");
-      bar.style.background=cc.c; bar.dataset.i=e.i;
+      bar.style.background=cc.c; bar.dataset.eventIndex=eventIndex(e);
       cell.appendChild(bar);
       if(e.s===key || c.d.getDay()===1){
         const nm=document.createElement("div");
-        nm.className="barname"; nm.style.color=cc.c; nm.dataset.i=e.i;
+        nm.className="barname"; nm.style.color=cc.c; nm.dataset.eventIndex=eventIndex(e);
         nm.textContent=`${e.t}（${mdLabel(e.s)}〜${mdLabel(e.e)}）`;
         cell.appendChild(nm);
       }
@@ -441,7 +442,7 @@ function renderList(){
       const cc=catOf(e.c);
       const st = (todayKey>=e.s && todayKey<=e.e) ? "開催中" : "開催予定";
       const pb=document.createElement("div");
-      pb.className="pbar"; pb.style.background=cc.bg; pb.style.color=cc.c; pb.dataset.i=e.i;
+      pb.className="pbar"; pb.style.background=cc.bg; pb.style.color=cc.c; pb.dataset.eventIndex=eventIndex(e);
       pb.innerHTML=`<span class="vlabel">${st}</span><span class="vname">${esc(e.t)} ${mdLabel(e.s)}〜${mdLabel(e.e)}</span>`;
       blk.appendChild(pb);
     });
@@ -458,7 +459,7 @@ function renderList(){
       const div=document.createElement("div");
       div.className="lev"+(koen?" koen":"");
       div.style.background=c.bg; div.style.borderColor=c.c; div.style.color=c.c;
-      div.dataset.i=e.i;
+      div.dataset.eventIndex=eventIndex(e);
       div.innerHTML=`${lf.time?`<span class="tm">${esc(lf.time)}</span>`:""}<span class="nm">${esc(lf.label)}</span>`+
         `<div class="meta">${g}${p?` ${icon}${esc(p)}${e.pd?"　"+esc(e.pd):""}`:(e.pd?esc(e.pd):"")}</div>`;
       body.appendChild(div);
@@ -474,8 +475,8 @@ function renderList(){
 // 【詳細ポップアップ】行事タップ時のモーダルダイアログ表示
 // ============================================================
 const OV=document.getElementById("overlay"), MD=document.getElementById("modal");
-function openModal(idx, anchorEl){
-  const e=EVENTS.find(x=>x.i===idx); if(!e) return;
+function openModal(index, anchorEl){
+  const e=EVENTS[index]; if(!e) return;
   const c=catOf(e.c), {p,icon}=placeInfo(e);
   const span=spanDays(e);
   let when;
@@ -505,8 +506,8 @@ function openModal(idx, anchorEl){
 }
 OV.onclick=ev=>{ if(ev.target===OV) OV.classList.remove("on"); };
 document.addEventListener("click",ev=>{
-  const t=ev.target.closest("[data-i]");
-  if(t) openModal(Number(t.dataset.i), t);
+  const t=ev.target.closest("[data-event-index]");
+  if(t) openModal(Number(t.dataset.eventIndex), t);
 });
 
 // ============================================================

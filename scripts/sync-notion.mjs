@@ -78,7 +78,6 @@ const HAISHIN_WORD = /(オンライン|Zoom|zoom|配信|LINE|ＬＩＮＥ)/;
  * @property {string[]} ha 担当者一覧
  * @property {string} d 説明
  * @property {string} u 関連URL
- * @property {number} [i] 描画時に使う行事番号
  */
 /**
  * イベント一覧と最終更新時刻を含むJSONデータ
@@ -366,11 +365,6 @@ async function main() {
       return h * 60 + m;
     };
     return toMin(a.st) - toMin(b.st);
-  });
-
-  // 連番IDの付与
-  events.forEach((ev, idx) => {
-    ev.i = idx;
   });
 
   console.log(`${currentMonthFirstDay}以降の有効な行事を${events.length}件処理しました。`);
