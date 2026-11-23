@@ -2,8 +2,8 @@ name: Sync Calendar from Notion
 
 on:
   schedule:
-    # 毎時0分 (UTC) に実行 -> JSTでも毎時0分
-    - cron: '0 * * * *'
+    # 毎時17分 (UTC) に実行 -> JSTでも毎時17分（毎時0分の混雑を避ける）
+    - cron: '17 * * * *'
   workflow_dispatch: # GitHubのWeb画面から手動即時実行
 
 jobs:
