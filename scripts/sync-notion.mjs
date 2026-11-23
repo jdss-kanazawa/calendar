@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '..');
-const EVENTS_JS_PATH = path.join(ROOT_DIR, 'events.js');
+const EVENTS_JSON_PATH = path.join(ROOT_DIR, 'events.json');
 
 const NOTION_API_KEY = process.env.NOTION_API_KEY;
 // デフォルトのDatabase ID（青年部金沢地区の日程表）
@@ -174,8 +174,6 @@ async function main() {
   const nowHour = getNowPart('hour');
   const nowMinute = getNowPart('minute');
 
-  // 初期表示月（案B: 常に当月）
-  const curMonth = `${nowYear}-${nowMonth}`;
   // 期間フィルタ基準: 実行日の当月1日以降
   const currentMonthFirstDay = `${nowYear}-${nowMonth}-01`;
   const updateTimestamp = `${nowYear}/${nowMonth}/${nowDay} ${nowHour}:${nowMinute}`;
@@ -267,25 +265,43 @@ async function main() {
 
   console.log(`Processed ${events.length} valid events (from ${currentMonthFirstDay} onwards).`);
 
-  // events.js の生成・上書き保存
-  const eventsJson = JSON.stringify(events, null, 2);
-  const jsContent = `// ==========================================
-// 青年部金沢地区の日程表 イベントデータ
-// Notionデータベースより自動生成
-// ==========================================
+  // 既存events.jsonを読み込み、lastUpdatedとeventsを含むオブジェクトとして保持する。
+  // ファイルがない、またはJSONが壊れている場合は「差分あり」と判断する。
+  let existingEvents = null;
 
-/** 最終更新日時 (JST) */
-const LAST_UPDATED = "${updateTimestamp}";
+  if (fs.existsSync(EVENTS_JSON_PATH)) {
+    try {
+      const existingData = JSON.parse(fs.readFileSync(EVENTS_JSON_PATH, 'utf8'));
+      // イベント比較では lastUpdated を除外し、eventsプロパティだけを見る。
+      existingEvents = existingData.events;
+    } catch {
+      // JSONの解析に失敗した場合は、壊れたファイルを安全な新しい内容で再生成する。
+      existingEvents = null;
+    }
+  }
 
-/** 初期表示月 (当月) */
-const CUR_MONTH = "${curMonth}";
+  // イベント配列だけを比較する。
+  // JSON文字列で比較するため、項目の順序と各イベントの内容も差分判定に含める。
+  const eventsChanged = existingEvents === null
+    || JSON.stringify(existingEvents) !== JSON.stringify(events);
 
-/** 行事データ一覧 */
-const EVENTS = ${eventsJson};
-`;
+  // イベントに差分がなければ、events.jsonを一切書き換えない。
+  // GitHub Actionsもコミット対象を検知できず、更新時刻は変わらないままになる。
+  if (!eventsChanged) {
+    console.log('No event changes detected. events.json was left unchanged.');
+    return;
+  }
 
-  fs.writeFileSync(EVENTS_JS_PATH, jsContent, 'utf8');
-  console.log(`Successfully updated ${EVENTS_JS_PATH}!`);
+  // イベント情報と更新時刻を同じJSONオブジェクトにまとめる。
+  // 比較時にはeventsだけを使うため、更新時刻だけの変更では差分にならない。
+  const calendarData = {
+    lastUpdated: updateTimestamp,
+    events,
+  };
+  const calendarJson = JSON.stringify(calendarData, null, 2);
+  fs.writeFileSync(EVENTS_JSON_PATH, `${calendarJson}\n`, 'utf8');
+
+  console.log(`Successfully updated ${EVENTS_JSON_PATH}!`);
 }
 
 main().catch(err => {

@@ -11,7 +11,8 @@ https://jdss-kanazawa.github.io/calendar/
 | ファイル | 役割 |
 | --- | --- |
 | `index.html` | カレンダー本体（HTML・CSS・JSを1ファイルに内包） |
-| `scripts/sync-notion.mjs` | Notion DBから日程データを取得し `index.html` を更新するスクリプト |
+| `events.json` | イベント配列と最終更新時刻をまとめたデータファイル |
+| `scripts/sync-notion.mjs` | Notion DBからイベント情報を取得し、差分がある場合だけJSONを更新するスクリプト |
 | `.github/workflows/sync-notion.yml` | 1時間ごとの自動同期および手動実行用GitHub Actionsワークフロー |
 | `favicon.ico` | ブラウザのタブ用アイコン |
 | `favicon.png` | 高解像度用アイコン（512px） |

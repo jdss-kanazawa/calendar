@@ -139,9 +139,12 @@ body.land #listView{display:none;}
 <div id="overlay"><div id="modal"></div></div>
 <!-- ============================================================ -->
 <!-- 1. イベントデータの読み込み                                  -->
-<!-- Notion DBから自動同期される行事データ（events.js）を同期読込   -->
+<!-- JSONファイルを読み込み、ブラウザのメモリ上で画面を生成する     -->
 <!-- ============================================================ -->
-<script src="events.js"></script>
+<script>
+let EVENTS = [];
+let LAST_UPDATED = "";
+</script>
 
 <!-- ============================================================ -->
 <!-- 2. カレンダー・リスト画面の制御プログラム                        -->
@@ -151,12 +154,12 @@ body.land #listView{display:none;}
 // 【起動処理】データの初期化と初期描画
 // ============================================================
 function __boot() {
-  // events.js に LAST_UPDATED が定義されていれば画面フッターに反映
-  if (typeof LAST_UPDATED !== "undefined") {
+  // events.json 内の更新時刻があれば画面フッターに反映
+  if (LAST_UPDATED) {
     const updEl = document.getElementById("lastUpdated");
     if (updEl) updEl.textContent = "最終更新: " + LAST_UPDATED;
   }
-  // events.js の行事データから存在する「年月（YYYY-MM）」のリストを算出
+  // イベントデータから存在する「年月（YYYY-MM）」のリストを算出
   MONTHS = [...new Set(EVENTS.map(e => e.s.slice(0, 7)))].sort();
   // 画面の幅に応じた表示モード（リスト / カレンダー）の適用
   applyOrientation();
@@ -164,8 +167,17 @@ function __boot() {
   renderAll();
 }
 
-// 初期表示月（events.js の CUR_MONTH があれば優先、無ければ当月フォールバック）
-let curMonth = (typeof CUR_MONTH !== "undefined") ? CUR_MONTH : "2026-11";
+// 初期表示月は固定値ではなく、ブラウザの日本時間の現在月から毎回算出する。
+function getCurrentJstMonth() {
+  const parts = new Intl.DateTimeFormat("ja-JP", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(new Date());
+  const getPart = type => parts.find(p => p.type === type)?.value || "";
+  return `${getPart("year")}-${getPart("month")}`;
+}
+let curMonth = getCurrentJstMonth();
 // ============================================================
 // 【マスタ定義】分類・対象・配色設定
 // ============================================================
@@ -435,7 +447,29 @@ window.addEventListener("resize",applyOrientation);
 window.addEventListener("orientationchange",applyOrientation);
 
 function renderAll(){ renderLegend(); renderTabs(); renderCal(); renderList(); }
-__boot();
+
+// events.jsonを非同期で読み込み、イベントと更新時刻を取得して画面を初期化する。
+async function loadCalendarData() {
+  try {
+    // キャッシュされた古いJSONを使わず、GitHub Pages上の最新ファイルを読む。
+    const eventsResponse = await fetch("events.json", { cache: "no-store" });
+
+    if (!eventsResponse.ok) {
+      throw new Error(`イベントデータの読み込みに失敗しました: ${eventsResponse.status}`);
+    }
+
+    // events.jsonは、イベント配列と更新時刻をまとめたオブジェクトとして読み込む。
+    const calendarData = await eventsResponse.json();
+    EVENTS = Array.isArray(calendarData.events) ? calendarData.events : [];
+    LAST_UPDATED = calendarData.lastUpdated || "";
+  } catch (error) {
+    console.error(error);
+  }
+
+  __boot();
+}
+
+loadCalendarData();
 </script>
 </body>
 </html>
