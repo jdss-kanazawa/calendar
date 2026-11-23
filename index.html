@@ -142,7 +142,43 @@ body.land #listView{display:none;}
 <!-- JSONファイルを読み込み、ブラウザのメモリ上で画面を生成する     -->
 <!-- ============================================================ -->
 <script>
+/**
+ * @typedef {Object} CalendarEvent
+ * @property {string} s 開始日（YYYY-MM-DD）
+ * @property {string} e 終了日（YYYY-MM-DD）
+ * @property {string} st 開始時刻（HH:mm、未設定時は空文字）
+ * @property {string} et 終了時刻（HH:mm、未設定時は空文字）
+ * @property {string} t 表示用行事名
+ * @property {string} ot 正式な行事名
+ * @property {string} c 分類
+ * @property {string} g 対象
+ * @property {string} p 場所
+ * @property {string} pd 場所の詳細
+ * @property {boolean} stt 配信行事かどうか
+ * @property {string[]} ha 担当者一覧
+ * @property {string} d 説明
+ * @property {string} u 関連URL
+ * @property {number} [i] 描画時に使う行事番号
+ */
+/**
+ * @typedef {Object} CalendarData
+ * @property {string} lastUpdated 最終更新日時
+ * @property {CalendarEvent[]} events 行事一覧
+ */
+/**
+ * @typedef {Object} CategoryStyle
+ * @property {string} name 分類名
+ * @property {string} c 文字・境界線の色
+ * @property {string} bg 背景色
+ */
+/**
+ * @typedef {Object} TargetStyle
+ * @property {string} name 対象名
+ * @property {string} c 文字・境界線の色
+ */
+/** @type {CalendarEvent[]} */
 let EVENTS = [];
+/** @type {string} */
 let LAST_UPDATED = "";
 </script>
 
@@ -170,6 +206,7 @@ function __boot() {
 
 // 初期表示月は固定値ではなく、ブラウザの現在日時を日本時間として毎回算出する。
 // GitHub Pages上のファイル更新時刻とは無関係に、ユーザーがページを開いた時点の当月を選ぶ。
+/** @returns {string} 日本時間の年月（YYYY-MM） */
 function getCurrentJstMonth() {
   const parts = new Intl.DateTimeFormat("ja-JP", {
     timeZone: "Asia/Tokyo",
@@ -184,6 +221,7 @@ let curMonth = getCurrentJstMonth();
 // 【マスタ定義】分類・対象・配色設定
 // ============================================================
 // 分類（ご講演、自支部／青年、共通、他支部）と背景色・文字色
+/** @type {CategoryStyle[]} */
 const CATS = [
   {name:"ご講演",   c:"#E56458", bg:"#FCE9E7"},
   {name:"自支部／青年", c:"#2783DE", bg:"#E5F2FC"},
@@ -191,6 +229,7 @@ const CATS = [
   {name:"他支部",   c:"#8A8781", bg:"#F0EFED"},
 ];
 // 対象（班長以上、学徒全員、縁正含む など）と枠線の色
+/** @type {TargetStyle[]} */
 const TGTS = [
   {name:"副地区長以上", c:"#8E6BC0"},
   {name:"会計以上",   c:"#46A171"},
@@ -205,12 +244,22 @@ const WK = ["月","火","水","木","金","土","日"];
 const offCats = new Set(), offTgts = new Set();
 
 const esc = s => String(s??"").replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"'"}[m]));
+/** @param {string} n @returns {CategoryStyle} */
 const catOf = n => CATS.find(c=>c.name===n) || {name:n,c:"#8A8781",bg:"#F0EFED"};
+/** @param {string} n @returns {TargetStyle} */
 const tgtOf = n => TGTS.find(t=>t.name===n) || {name:n,c:"#8A8781"};
+/** @param {string} s YYYY-MM-DD形式の日付 @returns {Date} */
 const dObj = s => { const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); };
+/** @param {Date} dt @returns {string} YYYY-MM-DD形式の日付 */
 const iso = dt => `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}`;
+/** @param {CalendarEvent} e @returns {number} 行事の日数 */
 const spanDays = e => Math.round((dObj(e.e)-dObj(e.s))/86400000)+1;
+/** @param {CalendarEvent} e @returns {boolean} 3日以上の期間行事かどうか */
 const isPeriod = e => spanDays(e)>=3;
+/**
+ * @param {CalendarEvent} e
+ * @returns {{p: string, icon: string}} 表示用の場所とアイコン
+ */
 function placeInfo(e){
   let p = e.p || "";
   if(e.stt && p && !HAISHIN_WORD.test(p)) p += "（配信）";
@@ -218,10 +267,15 @@ function placeInfo(e){
   const icon = (e.stt || HAISHIN_WORD.test(p)) ? "📡" : "🏫";
   return {p, icon};
 }
+/** @param {string} s YYYY-MM-DD形式の日付 @returns {string} M/D形式の日付 */
 function mdLabel(s){ const [,m,d]=s.split("-"); return `${Number(m)}/${Number(d)}`; }
+/** @param {string} s YYYY-MM-DD形式の日付 @returns {string} 曜日の一文字表記 */
 function wkLabel(s){ return WK[(dObj(s).getDay()+6)%7]; }
+/** @param {CalendarEvent} e @returns {number} 開始時刻を分にした値 */
 const tkey = e => e.st ? parseInt(e.st.split(":")[0])*60 + parseInt(e.st.split(":")[1]) : -1;
+/** @param {CalendarEvent} a @param {CalendarEvent} b @returns {number} 時刻順の比較結果 */
 const byTime = (a,b) => tkey(a)-tkey(b) || a.t.localeCompare(b.t);
+/** @param {CalendarEvent} e @returns {boolean} 分類・対象フィルターを通過するかどうか */
 function visible(e){ return !offCats.has(e.c) && !(e.g && offTgts.has(e.g)); }
 
 // ============================================================
@@ -256,6 +310,7 @@ function renderLegend(){
 // ============================================================
 // 【月ナビゲーション】月切替タブ（10月、11月など）と前月/次月ボタン
 // ============================================================
+/** @type {string[]} */
 let MONTHS = [];
 function renderTabs(){
   // タブ領域を毎回空にすることで、データ再描画時に前回分のボタンが残るのを防ぐ。
@@ -271,6 +326,7 @@ function renderTabs(){
     T.appendChild(b);
   });
 }
+/** @param {number} d 前月なら-1、次月なら1 */
 function shiftMonth(d){
   // 前月ボタンは-1、次月ボタンは+1として実際に存在するMONTHSの位置へ移動する。
   // 範囲外なら移動せず、そのまま現在の表示月を維持する。
@@ -283,6 +339,12 @@ document.getElementById("nextM").onclick=()=>shiftMonth(1);
 // ============================================================
 // 【カード生成】カレンダーマス内の行事カード・長期帯のHTML組み立て
 // ============================================================
+/**
+ * @param {CalendarEvent} e
+ * @param {string} label
+ * @param {string|null} timestr
+ * @returns {string} 行事カードのHTML
+ */
 function cardHTML(e, label, timestr){
   const c=catOf(e.c), koen=e.c==="ご講演";
   const {p,icon}=placeInfo(e);
@@ -291,6 +353,11 @@ function cardHTML(e, label, timestr){
   const tg = (e.g && e.g!=="学徒全員") ? `<span class="tg" style="border-color:${tgtOf(e.g).c};color:${tgtOf(e.g).c}">${esc(e.g)}</span>` : "";
   return `<div class="ev${koen?" koen":""}" data-i="${e.i}" style="background:${c.bg};border-color:${c.c};color:${c.c}">${t}<span class="nm">${esc(label||e.t)}</span>${tg}${loc}</div>`;
 }
+/**
+ * @param {CalendarEvent} e
+ * @param {string} day YYYY-MM-DD形式の日付
+ * @returns {{label: string, time: string|null}|null} 指定日の表示内容
+ */
 function labelFor(e, day){
   const span=spanDays(e);
   if(span<=1) return {label:e.t, time:e.st?`${e.st}〜${e.et||""}`.replace(/〜$/,""):null};
@@ -457,6 +524,10 @@ window.addEventListener("orientationchange",applyOrientation);
 function renderAll(){ renderLegend(); renderTabs(); renderCal(); renderList(); }
 
 // events.jsonを非同期で読み込み、イベントと更新時刻を取得して画面を初期化する。
+/**
+ * events.jsonを取得し、カレンダー画面を初期化する。
+ * @returns {Promise<void>}
+ */
 async function loadCalendarData() {
   try {
     // ブラウザキャッシュではなくサーバー上の最新ファイルを読む。
@@ -469,6 +540,7 @@ async function loadCalendarData() {
 
     // events.jsonは更新時刻とイベント配列を持つオブジェクトなので、
     // events配列が存在しない不正な内容では空配列として扱う。
+    /** @type {CalendarData} */
     const calendarData = await eventsResponse.json();
     EVENTS = Array.isArray(calendarData.events) ? calendarData.events : [];
     LAST_UPDATED = calendarData.lastUpdated || "";

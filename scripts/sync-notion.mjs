@@ -26,6 +26,66 @@ const ALLOWED_TGTS = ['班長以上', '学徒全員', '縁正含む', '希望者
 // 場所名や場所詳細に配信を示す語が含まれている場合は配信行事として扱う。
 const HAISHIN_WORD = /(オンライン|Zoom|zoom|配信|LINE|ＬＩＮＥ)/;
 
+/**
+ * Notionのテキスト要素
+ * @typedef {Object} NotionText
+ * @property {string} plain_text
+ */
+/**
+ * Notionの日付プロパティ
+ * @typedef {Object} NotionDate
+ * @property {string} start 開始日時
+ * @property {string|null} [end] 終了日時
+ */
+/**
+ * Notionページ内の利用対象プロパティ
+ * @typedef {Object} NotionProperty
+ * @property {NotionText[]} [title]
+ * @property {NotionText[]} [rich_text]
+ * @property {{name: string}|null} [select]
+ * @property {{name: string}[]} [multi_select]
+ * @property {boolean} [checkbox]
+ * @property {string|null} [url]
+ * @property {NotionDate|null} [date]
+ */
+/**
+ * 取得したNotionデータベースのページ
+ * @typedef {Object} NotionPage
+ * @property {Record<string, NotionProperty|null>} properties
+ */
+/**
+ * Notionの日付をカレンダー用に分解した値
+ * @typedef {Object} ParsedEventDate
+ * @property {string} s 開始日（YYYY-MM-DD）
+ * @property {string} e 終了日（YYYY-MM-DD）
+ * @property {string} st 開始時刻（HH:mmまたは空文字）
+ * @property {string} et 終了時刻（HH:mmまたは空文字）
+ */
+/**
+ * events.jsonに保存し、画面で表示する行事データ
+ * @typedef {Object} CalendarEvent
+ * @property {string} s 開始日（YYYY-MM-DD）
+ * @property {string} e 終了日（YYYY-MM-DD）
+ * @property {string} st 開始時刻
+ * @property {string} et 終了時刻
+ * @property {string} t 表示用行事名
+ * @property {string} ot 正式な行事名
+ * @property {string} c 分類
+ * @property {string} g 対象
+ * @property {string} p 場所
+ * @property {string} pd 場所の詳細
+ * @property {boolean} stt 配信行事かどうか
+ * @property {string[]} ha 担当者一覧
+ * @property {string} d 説明
+ * @property {string} u 関連URL
+ * @property {number} [i] 描画時に使う行事番号
+ */
+/**
+ * イベント一覧と最終更新時刻を含むJSONデータ
+ * @typedef {Object} CalendarData
+ * @property {string} lastUpdated 最終更新日時
+ * @property {CalendarEvent[]} events 行事一覧
+ */
 
 /**
  * プロパティヘルパー
@@ -33,31 +93,37 @@ const HAISHIN_WORD = /(オンライン|Zoom|zoom|配信|LINE|ＬＩＮＥ)/;
  * Notion APIのプロパティ形式は種類ごとに異なるため、
  * タイトル、本文、選択肢などを画面で使いやすい文字列または配列に変換する。
  */
+/** @param {NotionProperty|null|undefined} prop @returns {string} */
 function getTitle(prop) {
   if (!prop || !prop.title || !Array.isArray(prop.title)) return '';
   return prop.title.map(t => t.plain_text).join('').trim();
 }
 
+/** @param {NotionProperty|null|undefined} prop @returns {string} */
 function getText(prop) {
   if (!prop || !prop.rich_text || !Array.isArray(prop.rich_text)) return '';
   return prop.rich_text.map(t => t.plain_text).join('').trim();
 }
 
+/** @param {NotionProperty|null|undefined} prop @returns {string} */
 function getSelect(prop) {
   if (!prop || !prop.select || !prop.select.name) return '';
   return prop.select.name.trim();
 }
 
+/** @param {NotionProperty|null|undefined} prop @returns {string[]} */
 function getMultiSelect(prop) {
   if (!prop || !prop.multi_select || !Array.isArray(prop.multi_select)) return [];
   return prop.multi_select.map(m => m.name.trim()).filter(Boolean);
 }
 
+/** @param {NotionProperty|null|undefined} prop @returns {boolean} */
 function getCheckbox(prop) {
   if (!prop) return false;
   return Boolean(prop.checkbox);
 }
 
+/** @param {NotionProperty|null|undefined} prop @returns {string} */
 function getUrl(prop) {
   if (!prop) return '';
   return prop.url || '';
@@ -68,10 +134,13 @@ function getUrl(prop) {
  *
  * 日付のみのプロパティは時刻を空文字として返す。
  * ISO8601形式に時刻が含まれる場合はDateを経由せず、明示的にAsia/Tokyoへ変換する。
+ * @param {NotionDate|null|undefined} dateObj Notionの日付プロパティ
+ * @returns {ParsedEventDate|null} カレンダー用の日付、または日付未設定時のnull
  */
 function parseNotionDate(dateObj) {
   if (!dateObj || !dateObj.start) return null;
 
+  /** @param {string|null|undefined} str @returns {{date: string, time: string}|null} */
   function toJST(str) {
     if (!str) return null;
     if (!str.includes('T')) {
@@ -112,8 +181,10 @@ function parseNotionDate(dateObj) {
  *
  * Notionのquery APIは100件ごとに分割されるため、
  * has_moreとnext_cursorを確認して次ページを繰り返し取得する。
+ * @returns {Promise<NotionPage[]>} データベース内の全ページ
  */
 async function fetchAllDatabasePages() {
+  /** @type {NotionPage[]} */
   const pages = [];
   let cursor = undefined;
 
@@ -164,6 +235,10 @@ async function fetchAllDatabasePages() {
   return pages;
 }
 
+/**
+ * Notionから行事を同期し、差分があればevents.jsonを書き換える。
+ * @returns {Promise<void>}
+ */
 async function main() {
   // 最初にNotionから確定済みかつ日時が入力された行事だけを全件取得する。
   // ページネーション処理はfetchAllDatabasePages内で完結している。
@@ -197,6 +272,7 @@ async function main() {
   const updateTimestamp = `${nowYear}/${nowMonth}/${nowDay} ${nowHour}:${nowMinute}`;
 
   // Notionの各ページから画面が参照する短いフィールド名のオブジェクトへ変換する。
+  /** @type {CalendarEvent[]} */
   const events = [];
 
   for (const page of pages) {
@@ -289,10 +365,12 @@ async function main() {
 
   // 既存events.jsonを読み込み、lastUpdatedとeventsを含むオブジェクトとして保持する。
   // ファイルがない、またはJSONが壊れている場合は「差分あり」と判断する。
+  /** @type {CalendarEvent[]|null} */
   let existingEvents = null;
 
   if (fs.existsSync(EVENTS_JSON_PATH)) {
     try {
+      /** @type {CalendarData} */
       const existingData = JSON.parse(fs.readFileSync(EVENTS_JSON_PATH, 'utf8'));
       // イベント比較では lastUpdated を除外し、eventsプロパティだけを見る。
       existingEvents = existingData.events;
@@ -316,6 +394,7 @@ async function main() {
 
   // イベント情報と更新時刻を同じJSONオブジェクトにまとめる。
   // 比較時にはeventsだけを使うため、更新時刻だけの変更では差分にならない。
+  /** @type {CalendarData} */
   const calendarData = {
     lastUpdated: updateTimestamp,
     events,
