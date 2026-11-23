@@ -177,13 +177,14 @@ function parseNotionDate(dateObj) {
 }
 
 /**
- * Notion APIから全件ページを取得
+ * Notion APIから条件に合う全ページを取得
  *
  * Notionのquery APIは100件ごとに分割されるため、
  * has_moreとnext_cursorを確認して次ページを繰り返し取得する。
- * @returns {Promise<NotionPage[]>} データベース内の全ページ
+ * @param {string} startDate 開始日がこの日以降の行事を取得する基準日（YYYY-MM-DD）
+ * @returns {Promise<NotionPage[]>} 条件に一致したページ
  */
-async function fetchAllDatabasePages() {
+async function fetchAllMatchingDatabasePages(startDate) {
   /** @type {NotionPage[]} */
   const pages = [];
   let cursor = undefined;
@@ -210,7 +211,25 @@ async function fetchAllDatabasePages() {
             {
               property: '日時',
               date: {
-                is_not_empty: true,
+                on_or_after: startDate,
+              },
+            },
+            {
+              property: '分類',
+              select: {
+                equals: ALLOWED_CATS,
+              },
+            },
+            {
+              property: '対象',
+              select: {
+                equals: ALLOWED_TGTS,
+              },
+            },
+            {
+              property: '担当',
+              multi_select: {
+                does_not_contain: '森宏嗣さん',
               },
             },
           ],
@@ -240,12 +259,6 @@ async function fetchAllDatabasePages() {
  * @returns {Promise<void>}
  */
 async function main() {
-  // 最初にNotionから確定済みかつ日時が入力された行事だけを全件取得する。
-  // ページネーション処理はfetchAllDatabasePages内で完結している。
-  console.log('Notionデータベースから行事を取得しています...');
-  const pages = await fetchAllDatabasePages();
-  console.log(`日時が設定された確定済みページを${pages.length}件取得しました。`);
-
   // サーバーがUTCでも正しい日本時間で更新時刻と期間フィルタを作れるよう、
   // 実行時刻をIntlのAsia/Tokyoタイムゾーンで明示的に取得する。
   const now = new Date();
@@ -266,10 +279,16 @@ async function main() {
   const nowHour = getNowPart('hour');
   const nowMinute = getNowPart('minute');
 
-  // 過去行事を画面から切り詰めるため、終了日が実行日の当月1日以降の行事だけ残す。
+  // 当月1日を開始日フィルターに使い、古い行事をNotion側で除外する。
   // 更新時刻はこのJSTの実行時刻から作り、イベント差分がある場合にだけ保存する。
   const currentMonthFirstDay = `${nowYear}-${nowMonth}-01`;
   const updateTimestamp = `${nowYear}/${nowMonth}/${nowDay} ${nowHour}:${nowMinute}`;
+
+  // 確定・日時・開始日・分類・対象・担当の条件をNotion側で適用してから取得する。
+  // ページネーション処理もfetchAllMatchingDatabasePages内で完結する。
+  console.log('Notionデータベースから条件に合う行事を取得しています...');
+  const pages = await fetchAllMatchingDatabasePages(currentMonthFirstDay);
+  console.log(`取得条件に一致した行事を${pages.length}件取得しました。`);
 
   // Notionの各ページから画面が参照する短いフィールド名のオブジェクトへ変換する。
   /** @type {CalendarEvent[]} */
@@ -279,25 +298,18 @@ async function main() {
     const props = page.properties;
     if (!props) continue;
 
-    // 分類が許可リスト外なら表示対象ではないため、以降の日時変換を行わず除外する。
+    // Notion APIの条件で分類と対象は絞り込み済み。画面表示用に値を取り出す。
     const category = getSelect(props['分類']);
-    if (!ALLOWED_CATS.includes(category)) continue;
 
-    // 対象が許可リスト外なら、この同期処理では公開しない。
     const target = getSelect(props['対象']);
-    if (!ALLOWED_TGTS.includes(target)) continue;
 
-    // 森宏嗣さんを担当に含む行事は公開対象外として除外する。
+    // Notion APIの条件で除外済み。イベントデータへ担当者一覧を格納するため取得する。
     const handlers = getMultiSelect(props['担当']);
-    if (handlers.includes('森宏嗣さん')) continue;
 
     // Notionの開始・終了日時を日付と時刻に分解し、開始時刻・終了時刻を個別に保持する。
     const dateParsed = parseNotionDate(props['日時']?.date);
     if (!dateParsed) continue;
     const { s, e, st, et } = dateParsed;
-
-    // 期間フィルタ: 実行日の当月1日以降（終了日または開始日が当月1日以降）
-    if (e < currentMonthFirstDay) continue;
 
     // 画面表示名では「青年勉強会」を統一名へ置換する。
     // 対象が縁正含むの場合は画面名を統一し、元のNotion上の行事名を正式名として別項目へ残す。
