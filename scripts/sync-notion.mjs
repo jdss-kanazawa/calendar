@@ -226,12 +226,12 @@ async function fetchAllMatchingDatabasePages(startDate) {
                 equals: ALLOWED_TGTS,
               },
             },
-            {
-              property: '担当',
-              multi_select: {
-                does_not_contain: '森宏嗣さん',
-              },
-            },
+            // {
+            //   property: '担当',
+            //   multi_select: {
+            //     does_not_contain: '森宏嗣さん',
+            //   },
+            // },
           ],
         },
       }),
