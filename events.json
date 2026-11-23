@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026/11/23 16:10",
+  "lastUpdated": "2026/11/24 01:10",
   "events": [
     {
       "s": "2026-11-01",
@@ -1370,6 +1370,22 @@
       ],
       "d": "",
       "u": "https://us02web.zoom.us/j/84231023434?pwd=Nm9DTVBuNmIvamNUcllUWVZGaFZ2UT09"
+    },
+    {
+      "s": "2027-01-16",
+      "e": "2027-01-16",
+      "st": "19:00",
+      "et": "20:00",
+      "t": "輝きセミナー（全国ネット顕正セミナー）",
+      "ot": "",
+      "c": "共通",
+      "g": "学徒全員",
+      "p": "Zoom",
+      "pd": "",
+      "stt": true,
+      "ha": [],
+      "d": "",
+      "u": "https://us02web.zoom.us/j/84122149305?pwd=SG01dm9lcnJYVFJWMnR2QktEeXk2UT09"
     },
     {
       "s": "2027-01-17",
