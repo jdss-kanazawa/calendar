@@ -154,7 +154,8 @@ let LAST_UPDATED = "";
 // 【起動処理】データの初期化と初期描画
 // ============================================================
 function __boot() {
-  // events.json 内の更新時刻があれば画面フッターに反映
+  // JSON読み込みが完了してからフッターへ最終更新時刻を反映する。
+  // ファイルが古い、または読み込みに失敗した場合でも空欄にするだけで画面描画は継続する。
   if (LAST_UPDATED) {
     const updEl = document.getElementById("lastUpdated");
     if (updEl) updEl.textContent = "最終更新: " + LAST_UPDATED;
@@ -167,7 +168,8 @@ function __boot() {
   renderAll();
 }
 
-// 初期表示月は固定値ではなく、ブラウザの日本時間の現在月から毎回算出する。
+// 初期表示月は固定値ではなく、ブラウザの現在日時を日本時間として毎回算出する。
+// GitHub Pages上のファイル更新時刻とは無関係に、ユーザーがページを開いた時点の当月を選ぶ。
 function getCurrentJstMonth() {
   const parts = new Intl.DateTimeFormat("ja-JP", {
     timeZone: "Asia/Tokyo",
@@ -256,16 +258,22 @@ function renderLegend(){
 // ============================================================
 let MONTHS = [];
 function renderTabs(){
+  // タブ領域を毎回空にすることで、データ再描画時に前回分のボタンが残るのを防ぐ。
+  // 各ボタンには元の年月（YYYY-MM）を保持し、表示文字だけを「N月」にする。
   const T=document.getElementById("mtabs"); T.innerHTML="";
   MONTHS.forEach(m=>{
     const b=document.createElement("button");
     b.className="mtab"+(m===curMonth?" active":"");
-    const yy=m.slice(0,4); b.textContent = yy==="2026" ? `${Number(m.slice(5))}月` : `${yy.slice(2)}年${Number(m.slice(5))}月`;
+    // 年をまたぐ場合もタブには月だけを表示し、前年・翌年の判別をユーザー操作に混ぜない。
+    b.textContent = `${Number(m.slice(5))}月`;
+    // 同じ年月タブが選択されたときだけカレンダーと一覧を再描画し、表示月を切り替える。
     b.onclick=()=>{ curMonth=m; renderAll(); };
     T.appendChild(b);
   });
 }
 function shiftMonth(d){
+  // 前月ボタンは-1、次月ボタンは+1として実際に存在するMONTHSの位置へ移動する。
+  // 範囲外なら移動せず、そのまま現在の表示月を維持する。
   const i=MONTHS.indexOf(curMonth)+d;
   if(i>=0 && i<MONTHS.length){ curMonth=MONTHS[i]; renderAll(); }
 }
@@ -451,21 +459,26 @@ function renderAll(){ renderLegend(); renderTabs(); renderCal(); renderList(); }
 // events.jsonを非同期で読み込み、イベントと更新時刻を取得して画面を初期化する。
 async function loadCalendarData() {
   try {
-    // キャッシュされた古いJSONを使わず、GitHub Pages上の最新ファイルを読む。
+    // ブラウザキャッシュではなくサーバー上の最新ファイルを読む。
+    // GitHub Pagesへ更新直後でも古いevents.jsonが表示される可能性を下げる。
     const eventsResponse = await fetch("events.json", { cache: "no-store" });
 
     if (!eventsResponse.ok) {
       throw new Error(`イベントデータの読み込みに失敗しました: ${eventsResponse.status}`);
     }
 
-    // events.jsonは、イベント配列と更新時刻をまとめたオブジェクトとして読み込む。
+    // events.jsonは更新時刻とイベント配列を持つオブジェクトなので、
+    // events配列が存在しない不正な内容では空配列として扱う。
     const calendarData = await eventsResponse.json();
     EVENTS = Array.isArray(calendarData.events) ? calendarData.events : [];
     LAST_UPDATED = calendarData.lastUpdated || "";
   } catch (error) {
-    console.error(error);
+    // ネットワーク障害やJSON形式不正でも、コンソールへ原因を残す。
+    // エラー時のEVENTSは先頭の空配列を維持し、画面全体が停止しないようにする。
+    console.error("カレンダーデータの読み込みに失敗しました:", error);
   }
 
+  // データの読み込み成否にかかわらず、フッターとカレンダー・一覧の初期描画を実行する。
   __boot();
 }
 
