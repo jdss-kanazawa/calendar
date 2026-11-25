@@ -54,7 +54,8 @@ body.land #listView{display:none;}
 .cell.dim .dnum{color:#B9B6B1;}
 .dnum{font-size:.78rem; font-weight:700; color:var(--text); padding:0 2px;}
 .cell.today .dnum{background:var(--text); color:#fff; border-radius:6px; display:inline-block; padding:0 5px;}
-.cell.today{box-shadow:inset 0 0 0 2px var(--text);}
+/* 内側の影では内容に隠れることがあるため、アウトラインで四辺を均等に強調する。 */
+.cell.today{outline:2px solid var(--text); outline-offset:-2px;}
 .bar{height:5px; border-radius:3px; margin:1px -4px; cursor:pointer; position:relative;}
 .bar.bstart{margin-left:2px;}
 .bar.bend{margin-right:2px;}
@@ -70,8 +71,8 @@ body.land #listView{display:none;}
 .ev.koen .lc{font-size:.72rem;}
 /* list view */
 .dayblock{display:flex; border:1px solid var(--border); border-radius:10px; margin-bottom:8px; overflow:hidden; background:#fff;}
-/* 今日のブロックは枠線で囲み、画面上端へ移動した際に少し余白を残す。 */
-.dayblock.today{border-color:var(--text); box-shadow:inset 0 0 0 2px var(--text); scroll-margin-top:12px;}
+/* 今日のブロックは内容に隠れない太い枠線で囲み、画面上端には少し余白を残す。 */
+.dayblock.today{border:2px solid var(--text); scroll-margin-top:12px;}
 .pbar{flex:0 0 30px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
   cursor:pointer; padding:6px 0;}
 .pbar .vlabel{writing-mode:vertical-rl; font-size:.62rem; font-weight:700; letter-spacing:.05em;}
